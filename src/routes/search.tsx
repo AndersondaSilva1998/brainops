@@ -39,15 +39,15 @@ function SearchPage() {
           >
             <div className="grid gap-1.5">
               <Label>Descrição / Palavra-chave / Mensagem de erro</Label>
-              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ex: impressora não imprime" />
+              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ex: erro de impressão ou senha esquecida" />
             </div>
             <div className="grid gap-1.5">
               <Label>Código do erro</Label>
-              <Input value={errorCode} onChange={(e) => setErrorCode(e.target.value)} placeholder="0x610000f6" />
+              <Input value={errorCode} onChange={(e) => setErrorCode(e.target.value)} placeholder="Ex: 0x12345678" />
             </div>
             <div className="grid gap-1.5">
               <Label>Equipamento</Label>
-              <Input value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="HP LaserJet" />
+              <Input value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="Ex: servidor, workstation, impressora" />
             </div>
             <div className="flex items-end">
               <Button type="submit" disabled={mutation.isPending} className="w-full md:w-auto">

@@ -1,32 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertOctagon, Plus, Search } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { knowledgeBaseService } from "@/services/knowledgeBase";
 
 export const Route = createFileRoute("/erros-conhecidos")({
   component: ErrosConhecidosPage,
 });
 
-const items = [
-  { id: "e-1", code: "0x610000f6", title: "Impressora HP trava a fila", priority: "alta", impact: "Média", equipment: "HP LaserJet Pro M404" },
-  { id: "e-2", code: "STOP 0x0000007B", title: "BSOD no boot após atualização", priority: "crítica", impact: "Alta", equipment: "Notebook Dell 5420" },
-  { id: "e-3", code: "ERR_CONN_TIMEOUT", title: "VPN não conecta em redes 4G", priority: "média", impact: "Média", equipment: "Cisco AnyConnect" },
-  { id: "e-4", code: "0x800CCC0E", title: "Outlook não envia e-mails", priority: "média", impact: "Média", equipment: "Outlook 365" },
-];
-
-const tone: Record<string, string> = {
-  crítica: "bg-red-500/10 text-red-500 border-red-500/20",
-  alta: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-  média: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-};
-
 function ErrosConhecidosPage() {
   const [q, setQ] = useState("");
-  const filtered = items.filter((i) => (i.title + i.code).toLowerCase().includes(q.toLowerCase()));
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["knowledge", "errors"],
+    queryFn: () => knowledgeBaseService.list(),
+  });
+
+  const items = useMemo(
+    () => data.filter((entry) => entry.category === "erro"),
+    [data],
+  );
+
+  const filtered = items.filter((entry) =>
+    [entry.title, entry.problemDescription, entry.equipment ?? "", ...entry.tags]
+      .join(" ")
+      .toLowerCase()
+      .includes(q.toLowerCase()),
+  );
+
   return (
     <AppShell
       title="Erros Conhecidos"
@@ -35,34 +40,48 @@ function ErrosConhecidosPage() {
     >
       <div className="mb-4 relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por código ou título" className="pl-9" />
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por equipamento ou título" className="pl-9" />
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
-        {filtered.map((i) => (
-          <Card key={i.id} className="transition-colors hover:border-primary/50">
-            <CardContent className="p-5">
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
-                    <AlertOctagon className="h-4 w-4" />
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Carregando...</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Nenhum erro conhecido encontrado.</p>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {filtered.map((entry) => (
+            <Card key={entry.id} className="transition-colors hover:border-primary/50">
+              <CardContent className="p-5">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
+                      <AlertOctagon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="mt-1 font-medium leading-tight">{entry.title}</h3>
+                    </div>
                   </div>
-                  <div>
-                    <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{i.code}</code>
-                    <h3 className="mt-1 font-medium leading-tight">{i.title}</h3>
-                  </div>
+                  <Badge variant="outline" className="capitalize">
+                    {entry.category}
+                  </Badge>
                 </div>
-                <Badge variant="outline" className={`capitalize ${tone[i.priority] ?? ""}`}>{i.priority}</Badge>
-              </div>
-              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <span>Impacto: {i.impact}</span>
-                <span>·</span>
-                <span>Equipamento: {i.equipment}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">{entry.problemDescription}</p>
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  {entry.equipment && <span>Equipamento: {entry.equipment}</span>}
+                  <span>Autor: {entry.author}</span>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {entry.tags.map((tag) => (
+                    <span key={tag} className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </AppShell>
   );
 }

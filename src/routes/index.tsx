@@ -51,20 +51,9 @@ const initialQueriesTrend = [
   { day: "Dom", value: 0 },
 ];
 
-const topProblems = [
-  { name: "Impressora offline", value: 0 },
-  { name: "VPN não conecta", value: 0 },
-  { name: "Outlook trava", value: 0 },
-  { name: "Erro 0x610000f6", value: 0 },
-  { name: "Reset AD", value: 0 },
-];
+const topProblems: { name: string; value: number }[] = [];
 
-const topEquipment = [
-  { name: "HP LaserJet Pro M404", falhas: 0 },
-  { name: "Notebook Dell 5420", falhas: 0 },
-  { name: "Switch Cisco 2960", falhas: 0 },
-  { name: "Impressora Ricoh SP", falhas: 0 },
-];
+const topEquipment: { name: string; falhas: number }[] = [];
 
 const recentActivity: { title: string; tag: string; time: string }[] = [];
 

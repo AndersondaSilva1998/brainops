@@ -1,5 +1,11 @@
 import { supabase, isSupabaseConfigured } from "./supabase";
 
+interface MessageRow {
+  conversa_id: string;
+  papel: "user" | "assistant" | "system";
+  criado_em: string;
+}
+
 const weekdayLabels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 export const dashboardService = {
@@ -24,14 +30,31 @@ export const dashboardService = {
         .from("bases_conhecimento")
         .select("id", { head: true, count: "exact" })
         .eq("categoria", "erro");
-      const queries = await supabase.from("mensagens").select("id", { head: true, count: "exact" });
+      const messagesRes = await supabase
+        .from<MessageRow>("mensagens")
+        .select("conversa_id,papel,criado_em");
+
+      const messages = messagesRes.data ?? [];
+      const queriesCount = messages.length;
+      const resolutionMinutes = messages.reduce((acc, row, index, arr) => {
+        if (row.papel !== "user") return acc;
+        const nextAssistant = arr.slice(index + 1).find((next) => next.conversa_id === row.conversa_id && next.papel === "assistant");
+        if (!nextAssistant) return acc;
+        const diffMs = new Date(nextAssistant.criado_em).getTime() - new Date(row.criado_em).getTime();
+        return acc + diffMs / 1000 / 60;
+      }, 0);
+      const userMessagesWithReply = messages.reduce((count, row, index, arr) => {
+        if (row.papel !== "user") return count;
+        const hasReply = arr.slice(index + 1).some((next) => next.conversa_id === row.conversa_id && next.papel === "assistant");
+        return count + (hasReply ? 1 : 0);
+      }, 0);
 
       return {
         documentsCount: docs.count ?? 0,
         proceduresCount: procedures.count ?? 0,
         errorsCount: errors.count ?? 0,
-        queriesCount: queries.count ?? 0,
-        avgResolutionMinutes: 0,
+        queriesCount,
+        avgResolutionMinutes: userMessagesWithReply > 0 ? Math.round(resolutionMinutes / userMessagesWithReply) : 0,
       };
     } catch (e) {
       console.error("dashboardService.getMetrics error", e);

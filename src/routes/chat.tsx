@@ -22,10 +22,12 @@ import {
   FileText,
   Sparkles,
   MessagesSquare,
+  Info,
 } from "lucide-react";
 import { useRef, useState, useEffect, useMemo } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { chatService } from "@/services/chat";
+import { conversationsService } from "@/services/conversations";
 import type { ChatMessage } from "@/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -39,127 +41,177 @@ interface Conversation {
   title: string;
   favorite: boolean;
   updatedAt: string;
-  messages: ChatMessage[];
 }
 
-const welcome: ChatMessage = {
-  id: "welcome",
-  role: "assistant",
-  content:
-    "Olá! Sou o BrainOps AI. Descreva o problema, código de erro ou situação e vou buscar a melhor solução na base de conhecimento.",
-  createdAt: new Date().toISOString(),
-};
-
 const suggestions = [
-  "Impressora HP não imprime, erro 0x610000f6",
-  "Como resetar a senha do Active Directory?",
-  "Outlook travando ao abrir anexos",
-  "VPN Cisco AnyConnect não conecta",
+  "Descreva o problema que você encontrou.",
+  "Informe o equipamento ou sistema afetado.",
+  "Digite termos de erro ou mensagem exibida.",
+  "Explique o que não está funcionando corretamente.",
 ];
 
 function ChatPage() {
-  const [conversations, setConversations] = useState<Conversation[]>([
-    {
-      id: "c-1",
-      title: "Nova conversa",
-      favorite: false,
-      updatedAt: new Date().toISOString(),
-      messages: [welcome],
-    },
-  ]);
-  const [activeId, setActiveId] = useState("c-1");
+  const [localConversations, setLocalConversations] = useState<Conversation[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [input, setInput] = useState("");
+  const [messageCache, setMessageCache] = useState<Record<string, ChatMessage[]>>({});
+  const [isSavingConversation, setIsSavingConversation] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const active = conversations.find((c) => c.id === activeId)!;
+  const queryClient = useQueryClient();
+
+  const { data: remoteConversations = [] } = useQuery({
+    queryKey: ["conversations", "list"],
+    queryFn: () => conversationsService.list(),
+    staleTime: 60_000,
+  });
+
+  const allConversations = useMemo(
+    () => [...localConversations, ...remoteConversations],
+    [localConversations, remoteConversations],
+  );
+
+  useEffect(() => {
+    if (!activeId && allConversations.length > 0) {
+      setActiveId(allConversations[0].id);
+    }
+  }, [activeId, allConversations]);
+
+  const active = allConversations.find((c) => c.id === activeId) ?? null;
+  const isRemoteActive = activeId ? !activeId.startsWith("local-") : false;
+
+  const { data: remoteMessages = [] } = useQuery({
+    queryKey: ["conversationMessages", activeId],
+    queryFn: () => (activeId ? conversationsService.getMessages(activeId) : Promise.resolve([])),
+    enabled: Boolean(activeId && isRemoteActive),
+  });
+
+  useEffect(() => {
+    if (activeId && isRemoteActive && remoteMessages.length > 0) {
+      setMessageCache((prev) => ({
+        ...prev,
+        [activeId]: remoteMessages,
+      }));
+    }
+  }, [activeId, isRemoteActive, remoteMessages]);
+
+  const activeMessages = activeId ? messageCache[activeId] ?? [] : [];
+
   const filtered = useMemo(
     () =>
-      conversations.filter((c) => c.title.toLowerCase().includes(filter.toLowerCase())),
-    [conversations, filter],
+      allConversations.filter((c) => c.title.toLowerCase().includes(filter.toLowerCase())),
+    [allConversations, filter],
   );
 
   const mutation = useMutation({
-    mutationFn: (text: string) =>
+    mutationFn: ({ text, conversationId, history }: { text: string; conversationId: string; history: { role: string; content: string }[] }) =>
       chatService.send({
         message: text,
-        history: active.messages.map((m) => ({ role: m.role, content: m.content })),
+        conversationId,
+        history,
       }),
     onSuccess: (res) => {
-      setConversations((prev) =>
-        prev.map((c) =>
-          c.id === activeId
-            ? { ...c, messages: [...c.messages, res.message], updatedAt: new Date().toISOString() }
-            : c,
-        ),
-      );
+      const targetId = res.conversationId;
+      setMessageCache((prev) => ({
+        ...prev,
+        [targetId]: [...(prev[targetId] ?? []), res.message],
+      }));
+
+      if (!targetId.startsWith("local-")) {
+        conversationsService.addMessage(targetId, { role: "assistant", content: res.message.content });
+        queryClient.invalidateQueries(["conversations", "list"]);
+      }
     },
   });
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [active.messages, mutation.isPending]);
+  }, [activeMessages.length, mutation.isPending]);
 
-  const submit = (raw?: string) => {
+  const createRemoteConversationIfNeeded = async (currentId: string, title: string) => {
+    if (!currentId.startsWith("local-")) {
+      return currentId;
+    }
+
+    setIsSavingConversation(true);
+    const created = await conversationsService.createConversation(title);
+    setIsSavingConversation(false);
+
+    if (!created) {
+      return currentId;
+    }
+
+    setLocalConversations((prev) => prev.filter((c) => c.id !== currentId));
+    setActiveId(created.id);
+    queryClient.invalidateQueries(["conversations", "list"]);
+    return created.id;
+  };
+
+  const submit = async (raw?: string) => {
     const text = (raw ?? input).trim();
     if (!text || mutation.isPending) return;
+
+    let currentId = activeId;
+    if (!currentId) {
+      currentId = `local-${Date.now()}`;
+      setLocalConversations((prev) => [
+        {
+          id: currentId,
+          title: text.slice(0, 40) || "Nova conversa",
+          favorite: false,
+          updatedAt: new Date().toISOString(),
+        },
+        ...prev,
+      ]);
+      setActiveId(currentId);
+    }
+
+    const targetId = await createRemoteConversationIfNeeded(currentId, text) ?? currentId;
+
     const user: ChatMessage = {
       id: `u-${Date.now()}`,
       role: "user",
       content: text,
       createdAt: new Date().toISOString(),
     };
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.id === activeId
-          ? {
-              ...c,
-              title: c.messages.length <= 1 ? text.slice(0, 40) : c.title,
-              messages: [...c.messages, user],
-              updatedAt: new Date().toISOString(),
-            }
-          : c,
-      ),
-    );
+
+    setMessageCache((prev) => ({
+      ...prev,
+      [targetId]: [...(prev[targetId] ?? []), user],
+    }));
+
+    if (!targetId.startsWith("local-")) {
+      conversationsService.addMessage(targetId, { role: "user", content: text });
+    }
+
     setInput("");
-    mutation.mutate(text);
+    mutation.mutate({ text, conversationId: targetId, history: activeMessages.map((m) => ({ role: m.role, content: m.content })) });
   };
 
   const newConv = () => {
-    const id = `c-${Date.now()}`;
-    setConversations((prev) => [
-      { id, title: "Nova conversa", favorite: false, updatedAt: new Date().toISOString(), messages: [welcome] },
+    const id = `local-${Date.now()}`;
+    setLocalConversations((prev) => [
+      { id, title: "Nova conversa", favorite: false, updatedAt: new Date().toISOString() },
       ...prev,
     ]);
     setActiveId(id);
   };
 
   const toggleFav = (id: string) =>
-    setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, favorite: !c.favorite } : c)));
+    setLocalConversations((prev) => prev.map((c) => (c.id === id ? { ...c, favorite: !c.favorite } : c)));
 
   const remove = (id: string) => {
-    setConversations((prev) => {
-      const next = prev.filter((c) => c.id !== id);
-      if (next.length === 0) {
-        const fresh: Conversation = {
-          id: `c-${Date.now()}`,
-          title: "Nova conversa",
-          favorite: false,
-          updatedAt: new Date().toISOString(),
-          messages: [welcome],
-        };
-        setActiveId(fresh.id);
-        return [fresh];
-      }
-      if (id === activeId) setActiveId(next[0].id);
-      return next;
-    });
+    setLocalConversations((prev) => prev.filter((c) => c.id !== id));
+    if (id === activeId) {
+      const next = allConversations.filter((c) => c.id !== id);
+      setActiveId(next.length > 0 ? next[0].id : null);
+    }
   };
 
   return (
     <AppShell title="BrainOps AI" subtitle="Assistente RAG conectado ao Ollama local">
       <div className="grid h-[calc(100vh-8rem)] gap-4 lg:grid-cols-[280px,1fr]">
-        {/* Sidebar de conversas */}
         <Card className="flex flex-col overflow-hidden">
           <div className="border-b p-3">
             <Button onClick={newConv} className="w-full" size="sm">
@@ -214,17 +266,16 @@ function ChatPage() {
           </ScrollArea>
         </Card>
 
-        {/* Chat */}
         <Card className="flex flex-col overflow-hidden">
           <div ref={scrollRef} className="flex-1 overflow-y-auto">
             <div className="mx-auto max-w-3xl space-y-6 p-6">
-              {active.messages.length <= 1 && (
+              {!activeMessages.length ? (
                 <div className="pt-6 text-center">
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Sparkles className="h-6 w-6" />
+                    <Info className="h-6 w-6" />
                   </div>
-                  <h2 className="mt-4 text-xl font-semibold">Como posso ajudar hoje?</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">Comece com uma das sugestões abaixo ou descreva seu problema.</p>
+                  <h2 className="mt-4 text-xl font-semibold">Inicie a conversa</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">Faça uma pergunta para iniciar. As respostas virão do modelo conectado ao backend.</p>
                   <div className="mt-6 grid gap-2 sm:grid-cols-2">
                     {suggestions.map((s) => (
                       <button
@@ -237,11 +288,9 @@ function ChatPage() {
                     ))}
                   </div>
                 </div>
+              ) : (
+                activeMessages.map((m) => <Bubble key={m.id} message={m} />)
               )}
-
-              {active.messages.map((m) => (
-                <Bubble key={m.id} message={m} />
-              ))}
 
               {mutation.isPending && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -314,28 +363,11 @@ function Bubble({ message }: { message: ChatMessage }) {
         </div>
 
         {!isUser && message.id !== "welcome" && (
-          <>
-            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-muted-foreground">
-              <Badge variant="outline" className="gap-1"><Sparkles className="h-3 w-3" /> Confiança: 92%</Badge>
-              <Badge variant="outline">Categoria: procedimento</Badge>
-              <span>· 1.2s</span>
-            </div>
-            <div className="space-y-1.5 pt-1">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Fontes utilizadas</p>
-              {["Manual HP LaserJet Pro M404.pdf", "Procedimento — Reset Spooler"].map((s) => (
-                <div key={s} className="flex items-center justify-between rounded-md border px-2.5 py-1.5 text-xs">
-                  <span className="flex items-center gap-2"><FileText className="h-3.5 w-3.5 text-muted-foreground" /> {s}</span>
-                  <Button size="sm" variant="ghost" className="h-6 px-2 text-xs">Abrir</Button>
-                </div>
-              ))}
-            </div>
-            <Separator className="my-2" />
-            <div className="flex items-center gap-1">
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={copy}><Copy className="h-3.5 w-3.5" /></Button>
-              <Button size="icon" variant="ghost" className="h-7 w-7"><ThumbsUp className="h-3.5 w-3.5" /></Button>
-              <Button size="icon" variant="ghost" className="h-7 w-7"><ThumbsDown className="h-3.5 w-3.5" /></Button>
-            </div>
-          </>
+          <div className="flex items-center gap-1 pt-2">
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={copy}><Copy className="h-3.5 w-3.5" /></Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7"><ThumbsUp className="h-3.5 w-3.5" /></Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7"><ThumbsDown className="h-3.5 w-3.5" /></Button>
+          </div>
         )}
       </div>
     </div>

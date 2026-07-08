@@ -1,49 +1,66 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, User, Clock } from "lucide-react";
+import { Search, Clock } from "lucide-react";
 import { useState } from "react";
+import { conversationsService } from "@/services/conversations";
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
 
 export const Route = createFileRoute("/historico")({
   component: HistoricoPage,
 });
 
-const items = [
-  { id: "h-1", user: "Ana Souza", question: "Impressora HP não imprime, erro 0x610000f6", answer: "Reiniciar Spooler e limpar fila...", date: "hoje 14:32", time: "1.2s", category: "Impressoras", docs: 3 },
-  { id: "h-2", user: "Carlos Mota", question: "Como resetar senha AD?", answer: "Abrir ADUC → localizar usuário...", date: "hoje 11:04", time: "0.9s", category: "Acesso", docs: 2 },
-  { id: "h-3", user: "Beatriz Lima", question: "VPN Cisco AnyConnect não conecta", answer: "Verificar rede 4G / DNS...", date: "ontem 17:22", time: "1.7s", category: "Rede", docs: 4 },
-  { id: "h-4", user: "João Pereira", question: "Outlook trava ao abrir anexos", answer: "Rodar SCANPST e reparo do Office...", date: "ontem 09:11", time: "1.1s", category: "Office", docs: 2 },
-];
-
 function HistoricoPage() {
   const [q, setQ] = useState("");
-  const filtered = items.filter((i) => (i.question + i.user).toLowerCase().includes(q.toLowerCase()));
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["conversations", "list"],
+    queryFn: () => conversationsService.list(),
+  });
+
+  const filtered = data.filter((item) =>
+    [item.title, item.lastUserMessage ?? "", item.lastAssistantMessage ?? ""]
+      .join(" ")
+      .toLowerCase()
+      .includes(q.toLowerCase()),
+  );
+
   return (
     <AppShell title="Histórico" subtitle="Todas as consultas realizadas na plataforma">
       <div className="mb-4 relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar consulta ou usuário" className="pl-9" />
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar conversa" className="pl-9" />
       </div>
 
-      <Card>
-        <CardContent className="divide-y p-0">
-          {filtered.map((i) => (
-            <div key={i.id} className="p-5">
-              <div className="mb-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><User className="h-3 w-3" /> {i.user}</span>
-                <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {i.date}</span>
-                <span>· {i.time}</span>
-                <Badge variant="secondary">{i.category}</Badge>
-                <Badge variant="outline">{i.docs} docs</Badge>
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Carregando histórico...</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Nenhuma conversa registrada.</p>
+      ) : (
+        <Card>
+          <CardContent className="divide-y p-0">
+            {filtered.map((item) => (
+              <div key={item.id} className="p-5">
+                <div className="mb-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">{formatDate(item.updatedAt)}</span>
+                  <span>· {item.messageCount} mensagens</span>
+                  <Badge variant="secondary">Conversa</Badge>
+                </div>
+                <p className="font-medium">{item.title}</p>
+                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.lastUserMessage ?? "Sem mensagem inicial."}</p>
+                {item.lastAssistantMessage && (
+                  <p className="mt-2 text-sm text-muted-foreground">Resposta: {item.lastAssistantMessage}</p>
+                )}
               </div>
-              <p className="font-medium">{i.question}</p>
-              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{i.answer}</p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </AppShell>
   );
 }

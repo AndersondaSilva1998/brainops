@@ -1,7 +1,43 @@
-import { api } from "./api";
+import { supabase, isSupabaseConfigured } from "@/services/supabase";
+
+export interface DocumentRecord {
+  id: string;
+  name: string;
+  contentType: string;
+  sizeBytes: number | null;
+  downloadUrl?: string;
+  storagePath?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const mapDocument = (row: any): DocumentRecord => ({
+  id: row.id,
+  name: row.nome,
+  contentType: row.tipo_conteudo ?? "Desconhecido",
+  sizeBytes: row.tamanho_bytes ?? null,
+  downloadUrl: row.url_download ?? undefined,
+  storagePath: row.caminho_storage ?? undefined,
+  createdAt: row.criado_em,
+  updatedAt: row.atualizado_em,
+});
+
 export const documentsService = {
-  list: () => api.get("/documents"),
-  upload: (formData: FormData) =>
-    fetch(`${api.baseUrl}/documents/upload`, { method: "POST", body: formData }).then((r) => r.json()),
-  remove: (id: string) => api.post(`/documents/${id}/delete`, {}),
+  async list(): Promise<DocumentRecord[]> {
+    if (!isSupabaseConfigured || !supabase) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from("documentos")
+      .select("*")
+      .order("criado_em", { ascending: false });
+
+    if (error) {
+      console.error("Supabase error list documents:", error);
+      return [];
+    }
+
+    return (data ?? []).map(mapDocument);
+  },
 };
