@@ -89,10 +89,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "SupportAI — Suporte Técnico com IA" },
       {
         property: "og:description",
-        content: "Consulte a base de conhecimento corporativa via IA local (Ollama + RAG).",
+        content: "Sistema interno de suporte técnico com IA (RAG) para consulta à base de conhecimento corporativa.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "SupportAI — Suporte Técnico com IA" },
+      { name: "twitter:description", content: "Sistema interno de suporte técnico com IA (RAG) para consulta à base de conhecimento corporativa." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d2b44529-1ff4-44ce-852a-37311b42ce53/id-preview-05433daf--3f85330a-0b8c-412e-a468-986356e5a689.lovable.app-1783505952261.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d2b44529-1ff4-44ce-852a-37311b42ce53/id-preview-05433daf--3f85330a-0b8c-412e-a468-986356e5a689.lovable.app-1783505952261.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
