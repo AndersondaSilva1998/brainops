@@ -14,6 +14,7 @@ import {
   Bot,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -32,47 +33,71 @@ export const Route = createFileRoute("/")({
   component: DashboardPage,
 });
 
-const metrics = {
-  documentsCount: 212,
-  proceduresCount: 74,
-  errorsCount: 128,
-  queriesCount: 1893,
-  avgResolutionMinutes: 12,
+const initialMetrics = {
+  documentsCount: 0,
+  proceduresCount: 0,
+  errorsCount: 0,
+  queriesCount: 0,
+  avgResolutionMinutes: 0,
 };
 
-const queriesTrend = [
-  { day: "Seg", value: 220 },
-  { day: "Ter", value: 265 },
-  { day: "Qua", value: 310 },
-  { day: "Qui", value: 298 },
-  { day: "Sex", value: 342 },
-  { day: "Sáb", value: 180 },
-  { day: "Dom", value: 140 },
+const initialQueriesTrend = [
+  { day: "Seg", value: 0 },
+  { day: "Ter", value: 0 },
+  { day: "Qua", value: 0 },
+  { day: "Qui", value: 0 },
+  { day: "Sex", value: 0 },
+  { day: "Sáb", value: 0 },
+  { day: "Dom", value: 0 },
 ];
 
 const topProblems = [
-  { name: "Impressora offline", value: 42 },
-  { name: "VPN não conecta", value: 36 },
-  { name: "Outlook trava", value: 29 },
-  { name: "Erro 0x610000f6", value: 21 },
-  { name: "Reset AD", value: 18 },
+  { name: "Impressora offline", value: 0 },
+  { name: "VPN não conecta", value: 0 },
+  { name: "Outlook trava", value: 0 },
+  { name: "Erro 0x610000f6", value: 0 },
+  { name: "Reset AD", value: 0 },
 ];
 
 const topEquipment = [
-  { name: "HP LaserJet Pro M404", falhas: 34 },
-  { name: "Notebook Dell 5420", falhas: 22 },
-  { name: "Switch Cisco 2960", falhas: 14 },
-  { name: "Impressora Ricoh SP", falhas: 12 },
+  { name: "HP LaserJet Pro M404", falhas: 0 },
+  { name: "Notebook Dell 5420", falhas: 0 },
+  { name: "Switch Cisco 2960", falhas: 0 },
+  { name: "Impressora Ricoh SP", falhas: 0 },
 ];
 
-const recentActivity = [
-  { title: "Novo procedimento — Reset senha AD", tag: "procedimento", time: "há 2 min" },
-  { title: "Erro cadastrado — Falha USB Dell 5420", tag: "erro", time: "há 34 min" },
-  { title: "Upload — Manual Ricoh SP.pdf", tag: "upload", time: "há 1 h" },
-  { title: "Consulta — VPN Cisco AnyConnect", tag: "consulta", time: "há 2 h" },
-];
+const recentActivity: { title: string; tag: string; time: string }[] = [];
 
 function DashboardPage() {
+  const [metrics, setMetrics] = useState(initialMetrics);
+  const [queriesTrend, setQueriesTrend] = useState(initialQueriesTrend as any[]);
+  const [topProblemsState, setTopProblemsState] = useState(topProblems as { name: string; value: number }[]);
+  const [topEquipmentState, setTopEquipmentState] = useState(topEquipment as { name: string; falhas: number }[]);
+  const [recentActivityState, setRecentActivityState] = useState(recentActivity as { title: string; tag: string; time: string }[]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const m = await dashboardService.getMetrics();
+        if (mounted) setMetrics(m);
+        const qt = await dashboardService.getQueriesTrend();
+        if (mounted) setQueriesTrend(qt);
+        const tp = await dashboardService.getTopProblems();
+        if (mounted) setTopProblemsState(tp.length ? tp : topProblems);
+        const te = await dashboardService.getTopEquipment();
+        if (mounted) setTopEquipmentState(te.length ? te : topEquipment);
+        const ra = await dashboardService.getRecentActivity();
+        if (mounted) setRecentActivityState(ra.length ? ra : recentActivity);
+      } catch (e) {
+        /* fetch errors are already logged in service */
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <AppShell
       title="Dashboard"
@@ -122,7 +147,7 @@ function DashboardPage() {
             <CardDescription>Top consultas do período</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {topProblems.map((p) => (
+            {topProblemsState.map((p) => (
               <div key={p.name} className="flex items-center justify-between text-sm">
                 <span className="truncate text-foreground/90">{p.name}</span>
                 <Badge variant="secondary">{p.value}</Badge>
@@ -139,7 +164,7 @@ function DashboardPage() {
           </CardHeader>
           <CardContent className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topEquipment} layout="vertical" margin={{ left: 20 }}>
+              <BarChart data={topEquipmentState} layout="vertical" margin={{ left: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                 <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} width={160} />
@@ -155,7 +180,7 @@ function DashboardPage() {
             <CardTitle className="text-base">Atividade recente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentActivity.map((a) => (
+            {recentActivityState.map((a) => (
               <div key={a.title} className="flex items-start justify-between gap-3 rounded-md border p-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{a.title}</p>
