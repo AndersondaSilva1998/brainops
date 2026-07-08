@@ -9,13 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsuariosRouteImport } from './routes/usuarios'
+import { Route as UploadsRouteImport } from './routes/uploads'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as ProcedimentosRouteImport } from './routes/procedimentos'
+import { Route as HistoricoRouteImport } from './routes/historico'
+import { Route as ErrosConhecidosRouteImport } from './routes/erros-conhecidos'
+import { Route as EquipamentosRouteImport } from './routes/equipamentos'
+import { Route as DocumentacoesRouteImport } from './routes/documentacoes'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KnowledgeBaseIndexRouteImport } from './routes/knowledge-base.index'
 import { Route as KnowledgeBaseNewRouteImport } from './routes/knowledge-base.new'
 
+const UsuariosRoute = UsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UploadsRoute = UploadsRouteImport.update({
+  id: '/uploads',
+  path: '/uploads',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -26,9 +44,39 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProcedimentosRoute = ProcedimentosRouteImport.update({
+  id: '/procedimentos',
+  path: '/procedimentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoricoRoute = HistoricoRouteImport.update({
+  id: '/historico',
+  path: '/historico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ErrosConhecidosRoute = ErrosConhecidosRouteImport.update({
+  id: '/erros-conhecidos',
+  path: '/erros-conhecidos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipamentosRoute = EquipamentosRouteImport.update({
+  id: '/equipamentos',
+  path: '/equipamentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentacoesRoute = DocumentacoesRouteImport.update({
+  id: '/documentacoes',
+  path: '/documentacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChatRoute = ChatRouteImport.update({
   id: '/chat',
   path: '/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -49,26 +97,50 @@ const KnowledgeBaseNewRoute = KnowledgeBaseNewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/chat': typeof ChatRoute
+  '/documentacoes': typeof DocumentacoesRoute
+  '/equipamentos': typeof EquipamentosRoute
+  '/erros-conhecidos': typeof ErrosConhecidosRoute
+  '/historico': typeof HistoricoRoute
+  '/procedimentos': typeof ProcedimentosRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/uploads': typeof UploadsRoute
+  '/usuarios': typeof UsuariosRoute
   '/knowledge-base/new': typeof KnowledgeBaseNewRoute
   '/knowledge-base/': typeof KnowledgeBaseIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/chat': typeof ChatRoute
+  '/documentacoes': typeof DocumentacoesRoute
+  '/equipamentos': typeof EquipamentosRoute
+  '/erros-conhecidos': typeof ErrosConhecidosRoute
+  '/historico': typeof HistoricoRoute
+  '/procedimentos': typeof ProcedimentosRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/uploads': typeof UploadsRoute
+  '/usuarios': typeof UsuariosRoute
   '/knowledge-base/new': typeof KnowledgeBaseNewRoute
   '/knowledge-base': typeof KnowledgeBaseIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/chat': typeof ChatRoute
+  '/documentacoes': typeof DocumentacoesRoute
+  '/equipamentos': typeof EquipamentosRoute
+  '/erros-conhecidos': typeof ErrosConhecidosRoute
+  '/historico': typeof HistoricoRoute
+  '/procedimentos': typeof ProcedimentosRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/uploads': typeof UploadsRoute
+  '/usuarios': typeof UsuariosRoute
   '/knowledge-base/new': typeof KnowledgeBaseNewRoute
   '/knowledge-base/': typeof KnowledgeBaseIndexRoute
 }
@@ -76,40 +148,86 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/analytics'
     | '/chat'
+    | '/documentacoes'
+    | '/equipamentos'
+    | '/erros-conhecidos'
+    | '/historico'
+    | '/procedimentos'
     | '/search'
     | '/settings'
+    | '/uploads'
+    | '/usuarios'
     | '/knowledge-base/new'
     | '/knowledge-base/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/analytics'
     | '/chat'
+    | '/documentacoes'
+    | '/equipamentos'
+    | '/erros-conhecidos'
+    | '/historico'
+    | '/procedimentos'
     | '/search'
     | '/settings'
+    | '/uploads'
+    | '/usuarios'
     | '/knowledge-base/new'
     | '/knowledge-base'
   id:
     | '__root__'
     | '/'
+    | '/analytics'
     | '/chat'
+    | '/documentacoes'
+    | '/equipamentos'
+    | '/erros-conhecidos'
+    | '/historico'
+    | '/procedimentos'
     | '/search'
     | '/settings'
+    | '/uploads'
+    | '/usuarios'
     | '/knowledge-base/new'
     | '/knowledge-base/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyticsRoute: typeof AnalyticsRoute
   ChatRoute: typeof ChatRoute
+  DocumentacoesRoute: typeof DocumentacoesRoute
+  EquipamentosRoute: typeof EquipamentosRoute
+  ErrosConhecidosRoute: typeof ErrosConhecidosRoute
+  HistoricoRoute: typeof HistoricoRoute
+  ProcedimentosRoute: typeof ProcedimentosRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
+  UploadsRoute: typeof UploadsRoute
+  UsuariosRoute: typeof UsuariosRoute
   KnowledgeBaseNewRoute: typeof KnowledgeBaseNewRoute
   KnowledgeBaseIndexRoute: typeof KnowledgeBaseIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/usuarios': {
+      id: '/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uploads': {
+      id: '/uploads'
+      path: '/uploads'
+      fullPath: '/uploads'
+      preLoaderRoute: typeof UploadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -124,11 +242,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/procedimentos': {
+      id: '/procedimentos'
+      path: '/procedimentos'
+      fullPath: '/procedimentos'
+      preLoaderRoute: typeof ProcedimentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/historico': {
+      id: '/historico'
+      path: '/historico'
+      fullPath: '/historico'
+      preLoaderRoute: typeof HistoricoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/erros-conhecidos': {
+      id: '/erros-conhecidos'
+      path: '/erros-conhecidos'
+      fullPath: '/erros-conhecidos'
+      preLoaderRoute: typeof ErrosConhecidosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipamentos': {
+      id: '/equipamentos'
+      path: '/equipamentos'
+      fullPath: '/equipamentos'
+      preLoaderRoute: typeof EquipamentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documentacoes': {
+      id: '/documentacoes'
+      path: '/documentacoes'
+      fullPath: '/documentacoes'
+      preLoaderRoute: typeof DocumentacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chat': {
       id: '/chat'
       path: '/chat'
       fullPath: '/chat'
       preLoaderRoute: typeof ChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -157,9 +317,17 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
   ChatRoute: ChatRoute,
+  DocumentacoesRoute: DocumentacoesRoute,
+  EquipamentosRoute: EquipamentosRoute,
+  ErrosConhecidosRoute: ErrosConhecidosRoute,
+  HistoricoRoute: HistoricoRoute,
+  ProcedimentosRoute: ProcedimentosRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
+  UploadsRoute: UploadsRoute,
+  UsuariosRoute: UsuariosRoute,
   KnowledgeBaseNewRoute: KnowledgeBaseNewRoute,
   KnowledgeBaseIndexRoute: KnowledgeBaseIndexRoute,
 }
