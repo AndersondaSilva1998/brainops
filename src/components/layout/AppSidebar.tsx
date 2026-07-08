@@ -91,11 +91,12 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
-              </SidebarGroupContent>
-            </SidebarMenu>
+              </SidebarMenu>
+            </SidebarGroupContent>
           </SidebarGroup>
         ))}
       </SidebarContent>
+
 
       <SidebarFooter>
         <SidebarMenu>
