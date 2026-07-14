@@ -210,7 +210,7 @@ function ChatPage() {
   };
 
   return (
-    <AppShell title="BrainOps AI" subtitle="Assistente RAG conectado ao Ollama local">
+    <AppShell title="BrainOps AI" subtitle="Assistente RAG conectado à API local">
       <div className="grid h-[calc(100vh-8rem)] gap-4 lg:grid-cols-[280px,1fr]">
         <Card className="flex flex-col overflow-hidden">
           <div className="border-b p-3">

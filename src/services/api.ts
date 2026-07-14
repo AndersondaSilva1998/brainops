@@ -1,4 +1,4 @@
-// Cliente HTTP simples para a API local de IA/RAG (por exemplo: Node/Python + Ollama).
+// Cliente HTTP simples para a API local de IA/RAG (por exemplo: Node/Python).
 // A URL base pode ser configurada via VITE_API_URL sem travar o projeto a um host específico.
 
 const BASE_URL =

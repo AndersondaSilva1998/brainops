@@ -45,6 +45,25 @@ create table if not exists public.uploads (
   atualizado_em timestamptz not null default now()
 );
 
+create table if not exists public.usuarios (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email text not null unique,
+  nome text not null,
+  papel text not null default 'usuario' check (papel in ('usuario','desenvolvedor','admin')),
+  telefone text,
+  dados_adicionais jsonb not null default '{}'::jsonb,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+
+-- Exemplo de inserção de usuário Desenvolvedor.
+-- Substitua o valor do id pelo id real do usuário criado no Auth do Supabase.
+-- Primeiro, crie o usuário no Auth do Supabase e copie o id gerado.
+-- Depois, execute este comando para vincular o usuário na tabela public.usuarios.
+
+-- insert into public.usuarios (id, email, nome, papel, telefone)
+-- values ('00000000-0000-0000-0000-000000000000', 'dev@seuprojeto.com', 'Desenvolvedor', 'desenvolvedor', '+55 00 00000-0000');
+
 create table if not exists public.conversas (
   id uuid primary key default uuid_generate_v4(),
   titulo text not null default 'Nova conversa',
@@ -71,8 +90,50 @@ create index if not exists idx_mensagens_conversa_id on public.mensagens(convers
 alter table public.bases_conhecimento enable row level security;
 alter table public.documentos enable row level security;
 alter table public.uploads enable row level security;
+alter table public.usuarios enable row level security;
 alter table public.conversas enable row level security;
 alter table public.mensagens enable row level security;
+
+drop policy if exists "Permitir leitura de perfil proprio" on public.usuarios;
+drop policy if exists "Permitir leitura para desenvolvedor" on public.usuarios;
+drop policy if exists "Permitir insercao para desenvolvedor" on public.usuarios;
+drop policy if exists "Permitir atualizacao de perfil proprio" on public.usuarios;
+drop policy if exists "Permitir atualizacao para desenvolvedor" on public.usuarios;
+drop policy if exists "Permitir delecao para desenvolvedor" on public.usuarios;
+
+create policy "Permitir leitura de perfil proprio" on public.usuarios
+for select using (id = auth.uid());
+
+create policy "Permitir leitura para desenvolvedor" on public.usuarios
+for select using (
+  exists(
+    select 1 from public.usuarios u where u.id = auth.uid() and u.papel = 'desenvolvedor'
+  )
+);
+
+create policy "Permitir insercao para desenvolvedor" on public.usuarios
+for insert with check (
+  exists(
+    select 1 from public.usuarios u where u.id = auth.uid() and u.papel = 'desenvolvedor'
+  )
+);
+
+create policy "Permitir atualizacao de perfil proprio" on public.usuarios
+for update using (id = auth.uid()) with check (id = auth.uid());
+
+create policy "Permitir atualizacao para desenvolvedor" on public.usuarios
+for update using (
+  exists(
+    select 1 from public.usuarios u where u.id = auth.uid() and u.papel = 'desenvolvedor'
+  )
+) with check (true);
+
+create policy "Permitir delecao para desenvolvedor" on public.usuarios
+for delete using (
+  exists(
+    select 1 from public.usuarios u where u.id = auth.uid() and u.papel = 'desenvolvedor'
+  )
+);
 
 drop policy if exists "Permitir leitura para todos" on public.bases_conhecimento;
 drop policy if exists "Permitir insercao para todos" on public.bases_conhecimento;

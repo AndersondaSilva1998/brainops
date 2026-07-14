@@ -71,7 +71,7 @@ function SettingsPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Configuração da API local (Ollama / RAG)</CardTitle>
+            <CardTitle className="text-base">Configuração da API local (RAG)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid gap-1.5">
@@ -181,7 +181,7 @@ function SettingsPage() {
               ["Fase 1", "Front-end completo ✅"],
               ["Fase 2", "Banco de dados Supabase"],
               ["Fase 3", "API própria (Node/Python)"],
-              ["Fase 4", "Ollama local"],
+              ["Fase 4", "API local / backend"],
               ["Fase 5", "RAG + busca semântica"],
               ["Fase 6", "Upload PDF/Word/Excel"],
               ["Fase 7", "Aprendizado com documentação"],

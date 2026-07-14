@@ -133,7 +133,7 @@ function UploadsPage() {
             </div>
             <Progress value={38} />
             <p className="mt-2 text-xs text-muted-foreground">
-              O processamento e geração de embeddings serão feitos pela API própria + Ollama.
+              O processamento e geração de embeddings serão feitos pela API própria.
             </p>
           </CardContent>
         </Card>
