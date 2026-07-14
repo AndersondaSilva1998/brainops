@@ -1,5 +1,5 @@
-// Thin HTTP client for the local AI/RAG API (e.g. Node/Python + Ollama).
-// Base URL is configurable via VITE_API_URL so nothing is locked to any host.
+// Cliente HTTP simples para a API local de IA/RAG (por exemplo: Node/Python + Ollama).
+// A URL base pode ser configurada via VITE_API_URL sem travar o projeto a um host específico.
 
 const BASE_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";

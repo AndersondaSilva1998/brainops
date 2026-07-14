@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+// Configuração do Supabase a partir das variáveis de ambiente do projeto.
 export const supabaseConfig = {
   url: import.meta.env.VITE_SUPABASE_URL as string | undefined,
   anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined,
