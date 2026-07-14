@@ -14,6 +14,7 @@ import { Route as UploadsRouteImport } from './routes/uploads'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProcedimentosRouteImport } from './routes/procedimentos'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as HistoricoRouteImport } from './routes/historico'
 import { Route as ErrosConhecidosRouteImport } from './routes/erros-conhecidos'
 import { Route as EquipamentosRouteImport } from './routes/equipamentos'
@@ -47,6 +48,11 @@ const SearchRoute = SearchRouteImport.update({
 const ProcedimentosRoute = ProcedimentosRouteImport.update({
   id: '/procedimentos',
   path: '/procedimentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoricoRoute = HistoricoRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/equipamentos': typeof EquipamentosRoute
   '/erros-conhecidos': typeof ErrosConhecidosRoute
   '/historico': typeof HistoricoRoute
+  '/login': typeof LoginRoute
   '/procedimentos': typeof ProcedimentosRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/equipamentos': typeof EquipamentosRoute
   '/erros-conhecidos': typeof ErrosConhecidosRoute
   '/historico': typeof HistoricoRoute
+  '/login': typeof LoginRoute
   '/procedimentos': typeof ProcedimentosRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/equipamentos': typeof EquipamentosRoute
   '/erros-conhecidos': typeof ErrosConhecidosRoute
   '/historico': typeof HistoricoRoute
+  '/login': typeof LoginRoute
   '/procedimentos': typeof ProcedimentosRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/equipamentos'
     | '/erros-conhecidos'
     | '/historico'
+    | '/login'
     | '/procedimentos'
     | '/search'
     | '/settings'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/equipamentos'
     | '/erros-conhecidos'
     | '/historico'
+    | '/login'
     | '/procedimentos'
     | '/search'
     | '/settings'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/equipamentos'
     | '/erros-conhecidos'
     | '/historico'
+    | '/login'
     | '/procedimentos'
     | '/search'
     | '/settings'
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   EquipamentosRoute: typeof EquipamentosRoute
   ErrosConhecidosRoute: typeof ErrosConhecidosRoute
   HistoricoRoute: typeof HistoricoRoute
+  LoginRoute: typeof LoginRoute
   ProcedimentosRoute: typeof ProcedimentosRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
@@ -247,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/procedimentos'
       fullPath: '/procedimentos'
       preLoaderRoute: typeof ProcedimentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/historico': {
@@ -323,6 +343,7 @@ const rootRouteChildren: RootRouteChildren = {
   EquipamentosRoute: EquipamentosRoute,
   ErrosConhecidosRoute: ErrosConhecidosRoute,
   HistoricoRoute: HistoricoRoute,
+  LoginRoute: LoginRoute,
   ProcedimentosRoute: ProcedimentosRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,

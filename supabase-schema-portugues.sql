@@ -62,7 +62,7 @@ create table if not exists public.usuarios (
 -- Depois, execute este comando para vincular o usuário na tabela public.usuarios.
 
 -- insert into public.usuarios (id, email, nome, papel, telefone)
--- values ('00000000-0000-0000-0000-000000000000', 'dev@seuprojeto.com', 'Desenvolvedor', 'desenvolvedor', '+55 00 00000-0000');
+-- values ('00000000-0000-0000-0000-000000000000', 'Anderson.dah.silva09@gmail.com', 'Anderson Silva', 'desenvolvedor', '41997474516');
 
 create table if not exists public.conversas (
   id uuid primary key default uuid_generate_v4(),
