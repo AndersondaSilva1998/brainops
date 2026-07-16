@@ -22,10 +22,10 @@ export interface ExternalApiTestResult {
 }
 
 export const defaultExternalApiConfig: ExternalApiConfig = {
-  url: "https://branco.eship.com.br/v3/",
-  api: "",
-  funcao: "",
-  method: "POST",
+  url: "https://branco.eship.com.br/v3/?api=e4f93a895f81ccda2d6a9df060eaee42&funcao=webServiceGetInfosOrdem",
+  api: "e4f93a895f81ccda2d6a9df060eaee42",
+  funcao: "webServiceGetInfosOrdem",
+  method: "GET",
   body: JSON.stringify(
     {
       ordem: "00716320",
