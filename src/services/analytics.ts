@@ -23,6 +23,14 @@ interface MessageRow {
   criado_em: string;
 }
 
+interface KnowledgeCategoryRow {
+  categoria?: string | null;
+}
+
+interface DocumentUsageRow {
+  tipo_conteudo?: string | null;
+}
+
 const formatDay = (date: Date) =>
   date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 
@@ -40,16 +48,19 @@ export const analyticsService = {
     const since = new Date();
     since.setDate(since.getDate() - 30);
 
-    const [{ data: messageRows, error: messagesError }, { count: docsCount, error: docsError }, { count: uploadsCount, error: uploadsError }] =
-      await Promise.all([
-        supabase
-          .from<MessageRow>("mensagens")
-          .select("conversa_id,papel,criado_em")
-          .gte("criado_em", since.toISOString())
-          .order("criado_em", { ascending: true }),
-        supabase.from("documentos").select("id", { head: true, count: "exact" }),
-        supabase.from("uploads").select("id", { head: true, count: "exact" }),
-      ]);
+    const [
+      { data: messageRows, error: messagesError },
+      { count: docsCount, error: docsError },
+      { count: uploadsCount, error: uploadsError },
+    ] = await Promise.all([
+      supabase
+        .from<MessageRow>("mensagens")
+        .select("conversa_id,papel,criado_em")
+        .gte("criado_em", since.toISOString())
+        .order("criado_em", { ascending: true }),
+      supabase.from("documentos").select("id", { head: true, count: "exact" }),
+      supabase.from("uploads").select("id", { head: true, count: "exact" }),
+    ]);
 
     if (messagesError) console.error("Supabase error analytics messages:", messagesError);
     if (docsError) console.error("Supabase error analytics documents:", docsError);
@@ -60,19 +71,25 @@ export const analyticsService = {
 
     const resolutionMinutes = messages.reduce((acc, row, index, arr) => {
       if (row.papel !== "user") return acc;
-      const nextAssistant = arr.slice(index + 1).find((next) => next.conversa_id === row.conversa_id && next.papel === "assistant");
+      const nextAssistant = arr
+        .slice(index + 1)
+        .find((next) => next.conversa_id === row.conversa_id && next.papel === "assistant");
       if (!nextAssistant) return acc;
-      const diffMs = new Date(nextAssistant.criado_em).getTime() - new Date(row.criado_em).getTime();
+      const diffMs =
+        new Date(nextAssistant.criado_em).getTime() - new Date(row.criado_em).getTime();
       return acc + diffMs / 1000 / 60;
     }, 0);
 
     const userMessagesWithReply = messages.reduce((count, row, index, arr) => {
       if (row.papel !== "user") return count;
-      const hasReply = arr.slice(index + 1).some((next) => next.conversa_id === row.conversa_id && next.papel === "assistant");
+      const hasReply = arr
+        .slice(index + 1)
+        .some((next) => next.conversa_id === row.conversa_id && next.papel === "assistant");
       return count + (hasReply ? 1 : 0);
     }, 0);
 
-    const avgResolutionMinutes = userMessagesWithReply > 0 ? Math.round(resolutionMinutes / userMessagesWithReply) : 0;
+    const avgResolutionMinutes =
+      userMessagesWithReply > 0 ? Math.round(resolutionMinutes / userMessagesWithReply) : 0;
 
     return {
       queriesCount,
@@ -85,8 +102,10 @@ export const analyticsService = {
   async queriesTrend(days = 14): Promise<Array<{ day: string; consultas: number }>> {
     if (!isSupabaseConfigured || !supabase) {
       return Array.from({ length: days }, (_, index) => ({
-        day: new Date(Date.now() - (days - 1 - index) * 24 * 60 * 60 * 1000)
-          .toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+        day: new Date(Date.now() - (days - 1 - index) * 24 * 60 * 60 * 1000).toLocaleDateString(
+          "pt-BR",
+          { day: "2-digit", month: "2-digit" },
+        ),
         consultas: 0,
       }));
     }
@@ -125,9 +144,7 @@ export const analyticsService = {
       return [];
     }
 
-    const { data, error } = await supabase
-      .from("bases_conhecimento")
-      .select("categoria");
+    const { data, error } = await supabase.from("bases_conhecimento").select("categoria");
 
     if (error) {
       console.error("Supabase error analytics categories:", error);
@@ -135,7 +152,7 @@ export const analyticsService = {
     }
 
     const counts = new Map<string, number>();
-    (data ?? []).forEach((row: any) => {
+    (data ?? []).forEach((row: KnowledgeCategoryRow) => {
       const category = row.categoria ?? "outro";
       counts.set(category, (counts.get(category) ?? 0) + 1);
     });
@@ -150,9 +167,7 @@ export const analyticsService = {
       return [];
     }
 
-    const { data, error } = await supabase
-      .from("documentos")
-      .select("tipo_conteudo");
+    const { data, error } = await supabase.from("documentos").select("tipo_conteudo");
 
     if (error) {
       console.error("Supabase error analytics top documents:", error);
@@ -160,7 +175,7 @@ export const analyticsService = {
     }
 
     const counts = new Map<string, number>();
-    (data ?? []).forEach((row: any) => {
+    (data ?? []).forEach((row: DocumentUsageRow) => {
       const name = row.tipo_conteudo ?? "Outro";
       counts.set(name, (counts.get(name) ?? 0) + 1);
     });

@@ -11,7 +11,18 @@ export interface DocumentRecord {
   updatedAt: string;
 }
 
-const mapDocument = (row: any): DocumentRecord => ({
+interface DocumentRow {
+  id: string;
+  nome: string;
+  tipo_conteudo?: string | null;
+  tamanho_bytes?: number | null;
+  url_download?: string | null;
+  caminho_storage?: string | null;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+const mapDocument = (row: DocumentRow): DocumentRecord => ({
   id: row.id,
   name: row.nome,
   contentType: row.tipo_conteudo ?? "Desconhecido",

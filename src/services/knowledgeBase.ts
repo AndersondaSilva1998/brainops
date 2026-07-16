@@ -1,7 +1,26 @@
 import type { KnowledgeEntry } from "@/types";
 import { supabase, isSupabaseConfigured } from "@/services/supabase";
 
-const mapRowToKnowledgeEntry = (row: any): KnowledgeEntry => ({
+interface KnowledgeBaseRow {
+  id: string;
+  titulo: string;
+  categoria: string;
+  equipamento?: string | null;
+  sistema?: string | null;
+  descricao_problema: string;
+  sintomas?: string | null;
+  passos_solucao: string;
+  observacoes?: string | null;
+  palavras_chave?: string[] | null;
+  tags?: string[] | null;
+  anexos?: string[] | null;
+  status: string;
+  criado_em: string;
+  atualizado_em: string;
+  autor: string;
+}
+
+const mapRowToKnowledgeEntry = (row: KnowledgeBaseRow): KnowledgeEntry => ({
   id: row.id,
   title: row.titulo,
   category: row.categoria,
@@ -81,10 +100,7 @@ export const knowledgeBaseService = {
       throw new Error("Supabase não está configurado");
     }
 
-    const { error } = await supabase
-      .from("bases_conhecimento")
-      .delete()
-      .eq("id", id);
+    const { error } = await supabase.from("bases_conhecimento").delete().eq("id", id);
 
     if (error) {
       console.error("Supabase error delete knowledge entry:", error);

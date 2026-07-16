@@ -7,7 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { knowledgeBaseService } from "@/services/knowledgeBase";
 import type { KnowledgeCategory, KnowledgeStatus } from "@/types";
@@ -53,8 +57,14 @@ function NewKnowledgePage() {
         symptoms: form.symptoms || undefined,
         solutionSteps: form.solutionSteps,
         notes: form.notes || undefined,
-        keywords: form.keywords.split(",").map((s) => s.trim()).filter(Boolean),
-        tags: form.tags.split(",").map((s) => s.trim()).filter(Boolean),
+        keywords: form.keywords
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        tags: form.tags
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
         attachments: [],
         status: form.status,
         author: form.author,
@@ -82,19 +92,37 @@ function NewKnowledgePage() {
             </Field>
 
             <Field label="Categoria">
-              <Select value={form.category} onValueChange={(v) => set("category", v as KnowledgeCategory)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.category}
+                onValueChange={(v) => set("category", v as KnowledgeCategory)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {categories.map((c) => <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>)}
+                  {categories.map((c) => (
+                    <SelectItem key={c} value={c} className="capitalize">
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
 
             <Field label="Status">
-              <Select value={form.status} onValueChange={(v) => set("status", v as KnowledgeStatus)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.status}
+                onValueChange={(v) => set("status", v as KnowledgeStatus)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {statuses.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
+                  {statuses.map((s) => (
+                    <SelectItem key={s} value={s} className="capitalize">
+                      {s}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
@@ -107,19 +135,37 @@ function NewKnowledgePage() {
             </Field>
 
             <Field label="Descrição do problema" className="md:col-span-2">
-              <Textarea rows={3} value={form.problemDescription} onChange={(e) => set("problemDescription", e.target.value)} required />
+              <Textarea
+                rows={3}
+                value={form.problemDescription}
+                onChange={(e) => set("problemDescription", e.target.value)}
+                required
+              />
             </Field>
 
             <Field label="Sintomas" className="md:col-span-2">
-              <Textarea rows={2} value={form.symptoms} onChange={(e) => set("symptoms", e.target.value)} />
+              <Textarea
+                rows={2}
+                value={form.symptoms}
+                onChange={(e) => set("symptoms", e.target.value)}
+              />
             </Field>
 
             <Field label="Solução (passo a passo)" className="md:col-span-2">
-              <Textarea rows={5} value={form.solutionSteps} onChange={(e) => set("solutionSteps", e.target.value)} required />
+              <Textarea
+                rows={5}
+                value={form.solutionSteps}
+                onChange={(e) => set("solutionSteps", e.target.value)}
+                required
+              />
             </Field>
 
             <Field label="Observações" className="md:col-span-2">
-              <Textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
+              <Textarea
+                rows={2}
+                value={form.notes}
+                onChange={(e) => set("notes", e.target.value)}
+              />
             </Field>
 
             <Field label="Palavras-chave (separadas por vírgula)">
@@ -134,13 +180,17 @@ function NewKnowledgePage() {
             </Field>
             <Field label="Anexos">
               <Input type="file" multiple disabled />
-              <p className="mt-1 text-xs text-muted-foreground">Upload será habilitado com o Supabase Storage.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Upload será habilitado com o Supabase Storage.
+              </p>
             </Field>
           </CardContent>
         </Card>
 
         <div className="mt-4 flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={() => history.back()}>Cancelar</Button>
+          <Button type="button" variant="outline" onClick={() => history.back()}>
+            Cancelar
+          </Button>
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? "Salvando..." : "Salvar"}
           </Button>
@@ -150,7 +200,15 @@ function NewKnowledgePage() {
   );
 }
 
-function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
+function Field({
+  label,
+  children,
+  className = "",
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div className={`grid gap-1.5 ${className}`}>
       <Label>{label}</Label>

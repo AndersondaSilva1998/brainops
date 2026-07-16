@@ -3,12 +3,7 @@
 
 export type KnowledgeStatus = "draft" | "published" | "archived";
 
-export type KnowledgeCategory =
-  | "procedimento"
-  | "erro"
-  | "documentacao"
-  | "manual"
-  | "outro";
+export type KnowledgeCategory = "procedimento" | "erro" | "documentacao" | "manual" | "outro";
 
 export interface Attachment {
   id: string;

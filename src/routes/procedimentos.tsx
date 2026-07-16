@@ -20,13 +20,16 @@ function ProcedimentosPage() {
     queryFn: () => knowledgeBaseService.list(),
   });
 
-  const items = useMemo(
-    () => data.filter((entry) => entry.category === "procedimento"),
-    [data],
-  );
+  const items = useMemo(() => data.filter((entry) => entry.category === "procedimento"), [data]);
 
   const filtered = items.filter((entry) =>
-    [entry.title, entry.problemDescription, entry.solutionSteps, entry.equipment ?? "", ...entry.tags]
+    [
+      entry.title,
+      entry.problemDescription,
+      entry.solutionSteps,
+      entry.equipment ?? "",
+      ...entry.tags,
+    ]
       .join(" ")
       .toLowerCase()
       .includes(q.toLowerCase()),
@@ -36,11 +39,20 @@ function ProcedimentosPage() {
     <AppShell
       title="Procedimentos"
       subtitle="Guias operacionais passo a passo"
-      actions={<Button size="sm"><Plus className="h-4 w-4" /> Novo procedimento</Button>}
+      actions={
+        <Button size="sm">
+          <Plus className="h-4 w-4" /> Novo procedimento
+        </Button>
+      }
     >
       <div className="mb-4 relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar procedimento" className="pl-9" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Buscar procedimento"
+          className="pl-9"
+        />
       </div>
 
       {isLoading ? (
@@ -59,14 +71,19 @@ function ProcedimentosPage() {
                   <Badge variant="outline">{entry.status}</Badge>
                 </div>
                 <h3 className="font-medium">{entry.title}</h3>
-                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{entry.solutionSteps}</p>
+                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+                  {entry.solutionSteps}
+                </p>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
                   {entry.equipment && <span>Equipamento: {entry.equipment}</span>}
                   {entry.system && <span>Sistema: {entry.system}</span>}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1">
                   {entry.tags.map((tag) => (
-                    <span key={tag} className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                    <span
+                      key={tag}
+                      className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                    >
                       #{tag}
                     </span>
                   ))}

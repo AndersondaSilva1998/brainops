@@ -30,14 +30,21 @@ function KnowledgeBaseListPage() {
       subtitle="Procedimentos, erros e documentações"
       actions={
         <Button asChild size="sm">
-          <Link to="/knowledge-base/new"><PlusCircle className="h-4 w-4" /> Novo</Link>
+          <Link to="/knowledge-base/new">
+            <PlusCircle className="h-4 w-4" /> Novo
+          </Link>
         </Button>
       }
     >
       <div className="mb-4 flex items-center gap-2">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por título ou palavra-chave" className="pl-9" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar por título ou palavra-chave"
+            className="pl-9"
+          />
         </div>
       </div>
 
@@ -49,14 +56,21 @@ function KnowledgeBaseListPage() {
             <Card key={k.id} className="transition-colors hover:border-primary/50">
               <CardContent className="p-5">
                 <div className="mb-2 flex items-center gap-2">
-                  <Badge variant="secondary" className="capitalize">{k.category}</Badge>
+                  <Badge variant="secondary" className="capitalize">
+                    {k.category}
+                  </Badge>
                   {k.equipment && <Badge variant="outline">{k.equipment}</Badge>}
                 </div>
                 <h3 className="mb-1 line-clamp-2 font-medium">{k.title}</h3>
                 <p className="line-clamp-2 text-sm text-muted-foreground">{k.problemDescription}</p>
                 <div className="mt-4 flex flex-wrap gap-1">
                   {k.tags.map((t) => (
-                    <span key={t} className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">#{t}</span>
+                    <span
+                      key={t}
+                      className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                    >
+                      #{t}
+                    </span>
                   ))}
                 </div>
               </CardContent>

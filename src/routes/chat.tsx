@@ -96,16 +96,23 @@ function ChatPage() {
     }
   }, [activeId, isRemoteActive, remoteMessages]);
 
-  const activeMessages = activeId ? messageCache[activeId] ?? [] : [];
+  const activeMessages = activeId ? (messageCache[activeId] ?? []) : [];
 
   const filtered = useMemo(
-    () =>
-      allConversations.filter((c) => c.title.toLowerCase().includes(filter.toLowerCase())),
+    () => allConversations.filter((c) => c.title.toLowerCase().includes(filter.toLowerCase())),
     [allConversations, filter],
   );
 
   const mutation = useMutation({
-    mutationFn: ({ text, conversationId, history }: { text: string; conversationId: string; history: { role: string; content: string }[] }) =>
+    mutationFn: ({
+      text,
+      conversationId,
+      history,
+    }: {
+      text: string;
+      conversationId: string;
+      history: { role: string; content: string }[];
+    }) =>
       chatService.send({
         message: text,
         conversationId,
@@ -119,7 +126,10 @@ function ChatPage() {
       }));
 
       if (!targetId.startsWith("local-")) {
-        conversationsService.addMessage(targetId, { role: "assistant", content: res.message.content });
+        conversationsService.addMessage(targetId, {
+          role: "assistant",
+          content: res.message.content,
+        });
         queryClient.invalidateQueries(["conversations", "list"]);
       }
     },
@@ -167,7 +177,7 @@ function ChatPage() {
       setActiveId(currentId);
     }
 
-    const targetId = await createRemoteConversationIfNeeded(currentId, text) ?? currentId;
+    const targetId = (await createRemoteConversationIfNeeded(currentId, text)) ?? currentId;
 
     const user: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -186,7 +196,11 @@ function ChatPage() {
     }
 
     setInput("");
-    mutation.mutate({ text, conversationId: targetId, history: activeMessages.map((m) => ({ role: m.role, content: m.content })) });
+    mutation.mutate({
+      text,
+      conversationId: targetId,
+      history: activeMessages.map((m) => ({ role: m.role, content: m.content })),
+    });
   };
 
   const newConv = () => {
@@ -199,7 +213,9 @@ function ChatPage() {
   };
 
   const toggleFav = (id: string) =>
-    setLocalConversations((prev) => prev.map((c) => (c.id === id ? { ...c, favorite: !c.favorite } : c)));
+    setLocalConversations((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, favorite: !c.favorite } : c)),
+    );
 
   const remove = (id: string) => {
     setLocalConversations((prev) => prev.filter((c) => c.id !== id));
@@ -248,7 +264,14 @@ function ChatPage() {
                     className="opacity-0 group-hover:opacity-100"
                     aria-label="Favoritar"
                   >
-                    <Star className={cn("h-3.5 w-3.5", c.favorite ? "fill-amber-400 text-amber-400 opacity-100" : "text-muted-foreground")} />
+                    <Star
+                      className={cn(
+                        "h-3.5 w-3.5",
+                        c.favorite
+                          ? "fill-amber-400 text-amber-400 opacity-100"
+                          : "text-muted-foreground",
+                      )}
+                    />
                   </button>
                   <button
                     onClick={(e) => {
@@ -275,7 +298,10 @@ function ChatPage() {
                     <Info className="h-6 w-6" />
                   </div>
                   <h2 className="mt-4 text-xl font-semibold">Inicie a conversa</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">Faça uma pergunta para iniciar. As respostas virão do modelo conectado ao backend.</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Faça uma pergunta para iniciar. As respostas virão do modelo conectado ao
+                    backend.
+                  </p>
                   <div className="mt-6 grid gap-2 sm:grid-cols-2">
                     {suggestions.map((s) => (
                       <button
@@ -364,9 +390,15 @@ function Bubble({ message }: { message: ChatMessage }) {
 
         {!isUser && message.id !== "welcome" && (
           <div className="flex items-center gap-1 pt-2">
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={copy}><Copy className="h-3.5 w-3.5" /></Button>
-            <Button size="icon" variant="ghost" className="h-7 w-7"><ThumbsUp className="h-3.5 w-3.5" /></Button>
-            <Button size="icon" variant="ghost" className="h-7 w-7"><ThumbsDown className="h-3.5 w-3.5" /></Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={copy}>
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7">
+              <ThumbsUp className="h-3.5 w-3.5" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7">
+              <ThumbsDown className="h-3.5 w-3.5" />
+            </Button>
           </div>
         )}
       </div>

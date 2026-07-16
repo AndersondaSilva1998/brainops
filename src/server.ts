@@ -42,7 +42,10 @@ function looksLikeErrorPayload(payload: unknown): boolean {
 
   if (typeof payload === "string") {
     const normalized = payload.trim().toLowerCase();
-    return normalized.length > 0 && /(error|erro|falha|exception|forbidden|unauthorized)/.test(normalized);
+    return (
+      normalized.length > 0 &&
+      /(error|erro|falha|exception|forbidden|unauthorized)/.test(normalized)
+    );
   }
 
   if (typeof payload === "object") {
@@ -74,7 +77,11 @@ function looksLikeSuccessfulPayload(payload: unknown, contentType: string | null
     if (!normalized) {
       return false;
     }
-    if (normalized.startsWith("<!doctype") || normalized.startsWith("<html") || normalized.includes("<body")) {
+    if (
+      normalized.startsWith("<!doctype") ||
+      normalized.startsWith("<html") ||
+      normalized.includes("<body")
+    ) {
       return false;
     }
     if (/(error|erro|falha|exception|forbidden|unauthorized|not found|timeout)/.test(normalized)) {
@@ -98,7 +105,18 @@ function looksLikeSuccessfulPayload(payload: unknown, contentType: string | null
       return false;
     }
 
-    const meaningfulKeys = ["data", "result", "results", "items", "dados", "ordens", "response", "value", "values", "content"];
+    const meaningfulKeys = [
+      "data",
+      "result",
+      "results",
+      "items",
+      "dados",
+      "ordens",
+      "response",
+      "value",
+      "values",
+      "content",
+    ];
     const hasMeaningfulKey = meaningfulKeys.some((key) => key in record);
     if (hasMeaningfulKey) {
       return true;
@@ -158,7 +176,8 @@ async function handleExternalProxy(request: Request): Promise<Response> {
 
     let forwardedBody: BodyInit | undefined;
     if (method !== "GET" && payload.body !== undefined) {
-      forwardedBody = typeof payload.body === "string" ? payload.body : JSON.stringify(payload.body);
+      forwardedBody =
+        typeof payload.body === "string" ? payload.body : JSON.stringify(payload.body);
     }
 
     const response = await fetch(targetUrl.toString(), {
@@ -181,7 +200,9 @@ async function handleExternalProxy(request: Request): Promise<Response> {
       looksLikeSuccessfulPayload(parsed, response.headers.get("content-type"));
     const errorMessage = upstreamOk
       ? undefined
-      : responseText || response.statusText || "A resposta da API externa não foi considerada válida.";
+      : responseText ||
+        response.statusText ||
+        "A resposta da API externa não foi considerada válida.";
 
     return Response.json(
       {

@@ -27,7 +27,10 @@ function SearchPage() {
   });
 
   return (
-    <AppShell title="Pesquisa Inteligente" subtitle="Busque na base de conhecimento por qualquer termo">
+    <AppShell
+      title="Pesquisa Inteligente"
+      subtitle="Busque na base de conhecimento por qualquer termo"
+    >
       <Card>
         <CardContent className="p-6">
           <form
@@ -39,19 +42,35 @@ function SearchPage() {
           >
             <div className="grid gap-1.5">
               <Label>Descrição / Palavra-chave / Mensagem de erro</Label>
-              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Ex: erro de impressão ou senha esquecida" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Ex: erro de impressão ou senha esquecida"
+              />
             </div>
             <div className="grid gap-1.5">
               <Label>Código do erro</Label>
-              <Input value={errorCode} onChange={(e) => setErrorCode(e.target.value)} placeholder="Ex: 0x12345678" />
+              <Input
+                value={errorCode}
+                onChange={(e) => setErrorCode(e.target.value)}
+                placeholder="Ex: 0x12345678"
+              />
             </div>
             <div className="grid gap-1.5">
               <Label>Equipamento</Label>
-              <Input value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="Ex: servidor, workstation, impressora" />
+              <Input
+                value={equipment}
+                onChange={(e) => setEquipment(e.target.value)}
+                placeholder="Ex: servidor, workstation, impressora"
+              />
             </div>
             <div className="flex items-end">
               <Button type="submit" disabled={mutation.isPending} className="w-full md:w-auto">
-                {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <SearchIcon className="h-4 w-4" />}
+                {mutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <SearchIcon className="h-4 w-4" />
+                )}
                 Pesquisar
               </Button>
             </div>
@@ -64,13 +83,17 @@ function SearchPage() {
           <Card key={r.id} className="transition-colors hover:border-primary/50">
             <CardContent className="p-5">
               <div className="mb-2 flex items-center gap-2">
-                <Badge variant="secondary" className="capitalize">{r.category}</Badge>
+                <Badge variant="secondary" className="capitalize">
+                  {r.category}
+                </Badge>
                 {r.equipment && <Badge variant="outline">{r.equipment}</Badge>}
               </div>
               <h3 className="mb-1 font-medium">{r.title}</h3>
               <p className="line-clamp-3 text-sm text-muted-foreground">{r.summary}</p>
               <div className="mt-4">
-                <Button size="sm" variant="secondary">Abrir</Button>
+                <Button size="sm" variant="secondary">
+                  Abrir
+                </Button>
               </div>
             </CardContent>
           </Card>

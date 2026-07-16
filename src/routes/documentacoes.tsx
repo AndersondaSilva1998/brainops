@@ -15,28 +15,46 @@ export const Route = createFileRoute("/documentacoes")({
 });
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  return new Date(value).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 function DocumentacoesPage() {
   const [q, setQ] = useState("");
-  const { data = [], isLoading } = useQuery({ queryKey: ["documents", "list"], queryFn: () => documentsService.list() });
-  const filtered = data.filter((doc) => (doc.name + (doc.contentType ?? "")).toLowerCase().includes(q.toLowerCase()));
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["documents", "list"],
+    queryFn: () => documentsService.list(),
+  });
+  const filtered = data.filter((doc) =>
+    (doc.name + (doc.contentType ?? "")).toLowerCase().includes(q.toLowerCase()),
+  );
 
   return (
     <AppShell
       title="Documentações"
       subtitle="Biblioteca técnica corporativa"
       actions={
-        <Button size="sm"><Plus className="h-4 w-4" /> Nova documentação</Button>
+        <Button size="sm">
+          <Plus className="h-4 w-4" /> Nova documentação
+        </Button>
       }
     >
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative max-w-md flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar documentação" className="pl-9" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar documentação"
+            className="pl-9"
+          />
         </div>
-        <Button variant="outline" size="sm"><Filter className="h-4 w-4" /> Filtros</Button>
+        <Button variant="outline" size="sm">
+          <Filter className="h-4 w-4" /> Filtros
+        </Button>
       </div>
 
       <Tabs defaultValue="cards">
@@ -65,10 +83,14 @@ function DocumentacoesPage() {
                     <p className="text-xs text-muted-foreground">{formatDate(doc.createdAt)}</p>
                     <div className="mt-3 flex flex-wrap gap-1">
                       {doc.downloadUrl && (
-                        <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">Download disponível</span>
+                        <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                          Download disponível
+                        </span>
                       )}
                       {doc.storagePath && (
-                        <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">Storage</span>
+                        <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                          Storage
+                        </span>
                       )}
                     </div>
                   </CardContent>
@@ -84,14 +106,18 @@ function DocumentacoesPage() {
               {isLoading ? (
                 <p className="p-4 text-sm text-muted-foreground">Carregando...</p>
               ) : filtered.length === 0 ? (
-                <p className="p-4 text-sm text-muted-foreground">Nenhuma documentação cadastrada.</p>
+                <p className="p-4 text-sm text-muted-foreground">
+                  Nenhuma documentação cadastrada.
+                </p>
               ) : (
                 filtered.map((doc) => (
                   <div key={doc.id} className="flex items-center gap-4 p-4">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     <div className="flex-1 min-w-0">
                       <p className="truncate font-medium">{doc.name}</p>
-                      <p className="text-xs text-muted-foreground">{doc.contentType ?? "Tipo desconhecido"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {doc.contentType ?? "Tipo desconhecido"}
+                      </p>
                     </div>
                     <Badge variant="outline">{formatDate(doc.createdAt)}</Badge>
                   </div>

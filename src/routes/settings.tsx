@@ -39,9 +39,16 @@ function SettingsPage() {
 
   const checkHealth = async () => {
     setChecking(true);
-    const ok = await chatService.health();
-    setChecking(false);
-    ok ? toast.success("API local respondeu OK") : toast.error("API local indisponível");
+    try {
+      const ok = await chatService.health();
+      if (ok) {
+        toast.success("API local respondeu OK");
+      } else {
+        toast.error("API local indisponível");
+      }
+    } finally {
+      setChecking(false);
+    }
   };
 
   const saveExternal = () => {
@@ -108,7 +115,10 @@ function SettingsPage() {
               <Input readOnly value={supabaseConfig.anonKey ? "••••••••" : "(não configurado)"} />
             </div>
             <p className="text-xs text-muted-foreground">
-              Status: {isSupabaseConfigured ? `Conectado ao projeto ${supabaseHost}` : "Pendente — defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY"}
+              Status:{" "}
+              {isSupabaseConfigured
+                ? `Conectado ao projeto ${supabaseHost}`
+                : "Pendente — defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY"}
             </p>
           </CardContent>
         </Card>
@@ -177,7 +187,9 @@ function SettingsPage() {
               <div className="mb-2 flex items-center justify-between">
                 <span className="font-medium">Último retorno salvo</span>
                 <span className="text-xs text-muted-foreground">
-                  {lastExternalResult?.timestamp ? new Date(lastExternalResult.timestamp).toLocaleString("pt-BR") : "Ainda não houve teste"}
+                  {lastExternalResult?.timestamp
+                    ? new Date(lastExternalResult.timestamp).toLocaleString("pt-BR")
+                    : "Ainda não houve teste"}
                 </span>
               </div>
               {lastExternalResult ? (
@@ -186,7 +198,8 @@ function SettingsPage() {
                     <span className="font-medium">Status:</span> {lastExternalResult.status}
                   </p>
                   <p>
-                    <span className="font-medium">Sucesso:</span> {lastExternalResult.ok ? "Sim" : "Não"}
+                    <span className="font-medium">Sucesso:</span>{" "}
+                    {lastExternalResult.ok ? "Sim" : "Não"}
                   </p>
                   {lastExternalResult.error ? (
                     <p className="text-red-600">
@@ -219,7 +232,10 @@ function SettingsPage() {
               ["Fase 7", "Aprendizado com documentação"],
               ["Fase 8", "Histórico e melhoria contínua"],
             ].map(([k, v]) => (
-              <div key={k} className="flex items-center justify-between rounded-md border px-3 py-2">
+              <div
+                key={k}
+                className="flex items-center justify-between rounded-md border px-3 py-2"
+              >
                 <span className="font-medium">{k}</span>
                 <span className="text-muted-foreground">{v}</span>
               </div>

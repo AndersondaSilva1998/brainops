@@ -13,7 +13,18 @@ export interface UploadRecord {
   updatedAt: string;
 }
 
-const mapUpload = (row: any): UploadRecord => ({
+interface UploadRow {
+  id: string;
+  nome_arquivo: string;
+  status: UploadStatus;
+  mensagem?: string | null;
+  caminho_storage?: string | null;
+  url_download?: string | null;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+const mapUpload = (row: UploadRow): UploadRecord => ({
   id: row.id,
   fileName: row.nome_arquivo,
   status: row.status,

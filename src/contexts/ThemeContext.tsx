@@ -24,11 +24,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     root.classList.toggle("dark", theme === "dark");
     try {
       localStorage.setItem("theme", theme);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, [theme]);
 
   return (
-    <Ctx.Provider value={{ theme, setTheme, toggle: () => setTheme(theme === "dark" ? "light" : "dark") }}>
+    <Ctx.Provider
+      value={{ theme, setTheme, toggle: () => setTheme(theme === "dark" ? "light" : "dark") }}
+    >
       {children}
     </Ctx.Provider>
   );

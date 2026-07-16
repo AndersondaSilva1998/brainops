@@ -145,7 +145,13 @@ export async function testExternalApi(config: ExternalApiConfig) {
 
     const data = await res.json().catch(() => null);
     const status = typeof data?.status === "number" ? data.status : res.status;
-    const ok = res.ok && Boolean(data?.ok) && status >= 200 && status < 400 && !data?.error && hasMeaningfulPayload(data?.data);
+    const ok =
+      res.ok &&
+      Boolean(data?.ok) &&
+      status >= 200 &&
+      status < 400 &&
+      !data?.error &&
+      hasMeaningfulPayload(data?.data);
 
     const result = {
       ok,

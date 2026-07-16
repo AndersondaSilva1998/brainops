@@ -25,9 +25,21 @@ interface UploadItem {
 }
 
 const statusMeta: Record<Status, { icon: typeof CheckCircle2; label: string; cls: string }> = {
-  pendente: { icon: Clock, label: "Pendente", cls: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
-  processando: { icon: Clock, label: "Processando", cls: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
-  concluido: { icon: CheckCircle2, label: "Concluído", cls: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
+  pendente: {
+    icon: Clock,
+    label: "Pendente",
+    cls: "text-amber-500 bg-amber-500/10 border-amber-500/20",
+  },
+  processando: {
+    icon: Clock,
+    label: "Processando",
+    cls: "text-amber-500 bg-amber-500/10 border-amber-500/20",
+  },
+  concluido: {
+    icon: CheckCircle2,
+    label: "Concluído",
+    cls: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
+  },
   erro: { icon: AlertCircle, label: "Erro", cls: "text-red-500 bg-red-500/10 border-red-500/20" },
 };
 
@@ -44,12 +56,19 @@ function formatBytes(bytes: number | null) {
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  return new Date(value).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 function UploadsPage() {
   const [drag, setDrag] = useState(false);
-  const { data = [], isLoading } = useQuery({ queryKey: ["uploads", "list"], queryFn: () => uploadsService.list() });
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["uploads", "list"],
+    queryFn: () => uploadsService.list(),
+  });
 
   const items: UploadItem[] = data.map((upload) => ({
     id: upload.id,
@@ -82,11 +101,17 @@ function UploadsPage() {
               <Upload className="h-6 w-6" />
             </div>
             <p className="mt-3 font-medium">Arraste arquivos ou clique para enviar</p>
-            <p className="text-xs text-muted-foreground">PDF, Word, Excel, TXT, Markdown, Imagem — até 50 MB</p>
-            <Button className="mt-4" size="sm"><Upload className="h-4 w-4" /> Selecionar arquivos</Button>
+            <p className="text-xs text-muted-foreground">
+              PDF, Word, Excel, TXT, Markdown, Imagem — até 50 MB
+            </p>
+            <Button className="mt-4" size="sm">
+              <Upload className="h-4 w-4" /> Selecionar arquivos
+            </Button>
             <div className="mt-4 flex flex-wrap justify-center gap-2 text-[11px] text-muted-foreground">
               {["PDF", "DOCX", "XLSX", "TXT", "MD", "PNG/JPG"].map((f) => (
-                <span key={f} className="rounded border px-2 py-0.5">{f}</span>
+                <span key={f} className="rounded border px-2 py-0.5">
+                  {f}
+                </span>
               ))}
             </div>
           </div>
@@ -111,7 +136,9 @@ function UploadsPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{d.name}</p>
-                      <p className="text-xs text-muted-foreground">{d.type} · {d.size} · {d.date}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {d.type} · {d.size} · {d.date}
+                      </p>
                     </div>
                     <Badge variant="outline" className={s.cls}>
                       <s.icon className="h-3 w-3" /> {s.label}
@@ -128,7 +155,9 @@ function UploadsPage() {
         <Card>
           <CardContent className="p-5">
             <div className="mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium"><File className="h-4 w-4" /> Índice vetorial (embeddings)</div>
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <File className="h-4 w-4" /> Índice vetorial (embeddings)
+              </div>
               <span className="text-xs text-muted-foreground">Fase 5 — aguardando backend</span>
             </div>
             <Progress value={38} />

@@ -7,6 +7,15 @@ export interface ConversationMessageRow {
   criado_em: string;
 }
 
+interface ConversationRow {
+  id: string;
+  titulo: string;
+  favorito: boolean;
+  criado_em: string;
+  atualizado_em: string;
+  mensagens?: ConversationMessageRow[];
+}
+
 export interface ConversationSummary {
   id: string;
   title: string;
@@ -47,11 +56,17 @@ export const conversationsService = {
       return [];
     }
 
-    return (data ?? []).map((row: any) => {
+    return (data ?? []).map((row: ConversationRow) => {
       const messages: ConversationMessageRow[] = row.mensagens ?? [];
       const ordered = normalizeMessages(messages);
-      const lastUser = ordered.slice().reverse().find((m) => m.papel === "user");
-      const lastAssistant = ordered.slice().reverse().find((m) => m.papel === "assistant");
+      const lastUser = ordered
+        .slice()
+        .reverse()
+        .find((m) => m.papel === "user");
+      const lastAssistant = ordered
+        .slice()
+        .reverse()
+        .find((m) => m.papel === "assistant");
 
       return {
         id: row.id,
@@ -116,7 +131,10 @@ export const conversationsService = {
     };
   },
 
-  async addMessage(conversationId: string, message: { role: "user" | "assistant" | "system"; content: string }): Promise<ConversationMessage | null> {
+  async addMessage(
+    conversationId: string,
+    message: { role: "user" | "assistant" | "system"; content: string },
+  ): Promise<ConversationMessage | null> {
     if (!isSupabaseConfigured || !supabase) {
       return null;
     }

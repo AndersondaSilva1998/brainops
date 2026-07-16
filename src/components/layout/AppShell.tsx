@@ -23,9 +23,7 @@ export function AppShell({ title, subtitle, actions, children }: AppShellProps) 
             <SidebarTrigger />
             <div className="flex flex-1 flex-col">
               <h1 className="text-sm font-semibold leading-none">{title}</h1>
-              {subtitle && (
-                <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
-              )}
+              {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
             </div>
             <div className="flex items-center gap-2">
               {actions}

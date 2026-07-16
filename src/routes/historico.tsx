@@ -9,7 +9,11 @@ import { useState } from "react";
 import { conversationsService } from "@/services/conversations";
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  return new Date(value).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 export const Route = createFileRoute("/historico")({
@@ -34,7 +38,12 @@ function HistoricoPage() {
     <AppShell title="Histórico" subtitle="Todas as consultas realizadas na plataforma">
       <div className="mb-4 relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar conversa" className="pl-9" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Buscar conversa"
+          className="pl-9"
+        />
       </div>
 
       {isLoading ? (
@@ -52,9 +61,13 @@ function HistoricoPage() {
                   <Badge variant="secondary">Conversa</Badge>
                 </div>
                 <p className="font-medium">{item.title}</p>
-                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.lastUserMessage ?? "Sem mensagem inicial."}</p>
+                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                  {item.lastUserMessage ?? "Sem mensagem inicial."}
+                </p>
                 {item.lastAssistantMessage && (
-                  <p className="mt-2 text-sm text-muted-foreground">Resposta: {item.lastAssistantMessage}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Resposta: {item.lastAssistantMessage}
+                  </p>
                 )}
               </div>
             ))}

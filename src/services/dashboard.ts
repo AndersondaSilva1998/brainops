@@ -6,6 +6,30 @@ interface MessageRow {
   criado_em: string;
 }
 
+interface KnowledgeRecordRow {
+  titulo?: string | null;
+  equipamento?: string | null;
+  categoria?: string | null;
+  criado_em?: string;
+}
+
+interface UploadRecordRow {
+  nome_arquivo?: string | null;
+  status?: string | null;
+  criado_em?: string;
+}
+
+interface ConversationRecordRow {
+  titulo?: string | null;
+  criado_em?: string;
+}
+
+interface DashboardActivityItem {
+  title: string;
+  tag: string;
+  time: string;
+}
+
 const weekdayLabels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 export const dashboardService = {
@@ -38,14 +62,19 @@ export const dashboardService = {
       const queriesCount = messages.length;
       const resolutionMinutes = messages.reduce((acc, row, index, arr) => {
         if (row.papel !== "user") return acc;
-        const nextAssistant = arr.slice(index + 1).find((next) => next.conversa_id === row.conversa_id && next.papel === "assistant");
+        const nextAssistant = arr
+          .slice(index + 1)
+          .find((next) => next.conversa_id === row.conversa_id && next.papel === "assistant");
         if (!nextAssistant) return acc;
-        const diffMs = new Date(nextAssistant.criado_em).getTime() - new Date(row.criado_em).getTime();
+        const diffMs =
+          new Date(nextAssistant.criado_em).getTime() - new Date(row.criado_em).getTime();
         return acc + diffMs / 1000 / 60;
       }, 0);
       const userMessagesWithReply = messages.reduce((count, row, index, arr) => {
         if (row.papel !== "user") return count;
-        const hasReply = arr.slice(index + 1).some((next) => next.conversa_id === row.conversa_id && next.papel === "assistant");
+        const hasReply = arr
+          .slice(index + 1)
+          .some((next) => next.conversa_id === row.conversa_id && next.papel === "assistant");
         return count + (hasReply ? 1 : 0);
       }, 0);
 
@@ -54,7 +83,8 @@ export const dashboardService = {
         proceduresCount: procedures.count ?? 0,
         errorsCount: errors.count ?? 0,
         queriesCount,
-        avgResolutionMinutes: userMessagesWithReply > 0 ? Math.round(resolutionMinutes / userMessagesWithReply) : 0,
+        avgResolutionMinutes:
+          userMessagesWithReply > 0 ? Math.round(resolutionMinutes / userMessagesWithReply) : 0,
       };
     } catch (e) {
       console.error("dashboardService.getMetrics error", e);
@@ -92,7 +122,7 @@ export const dashboardService = {
         counts[label] = 0;
       }
 
-      (data ?? []).forEach((r: any) => {
+      (data ?? []).forEach((r: MessageRow) => {
         const dt = new Date(r.criado_em);
         const label = weekdayLabels[dt.getDay()];
         counts[label] = (counts[label] ?? 0) + 1;
@@ -121,7 +151,7 @@ export const dashboardService = {
       if (error) throw error;
 
       const map: Record<string, number> = {};
-      (data ?? []).forEach((r: any) => {
+      (data ?? []).forEach((r: KnowledgeRecordRow) => {
         const name = r.titulo ?? "Sem título";
         map[name] = (map[name] ?? 0) + 1;
       });
@@ -151,7 +181,7 @@ export const dashboardService = {
       if (error) throw error;
 
       const map: Record<string, number> = {};
-      (data ?? []).forEach((r: any) => {
+      (data ?? []).forEach((r: KnowledgeRecordRow) => {
         const name = r.equipamento ?? "-";
         map[name] = (map[name] ?? 0) + 1;
       });
@@ -167,19 +197,49 @@ export const dashboardService = {
   },
 
   async getRecentActivity(limit = 10) {
-    if (!isSupabaseConfigured || !supabase) return [] as any[];
+    if (!isSupabaseConfigured || !supabase) return [] as DashboardActivityItem[];
 
     try {
       const [kb, uploads, conversas] = await Promise.all([
-        supabase.from("bases_conhecimento").select("titulo, categoria, criado_em").order("criado_em", { ascending: false }).limit(limit),
-        supabase.from("uploads").select("nome_arquivo, status, criado_em").order("criado_em", { ascending: false }).limit(limit),
-        supabase.from("conversas").select("titulo, criado_em").order("criado_em", { ascending: false }).limit(limit),
+        supabase
+          .from("bases_conhecimento")
+          .select("titulo, categoria, criado_em")
+          .order("criado_em", { ascending: false })
+          .limit(limit),
+        supabase
+          .from("uploads")
+          .select("nome_arquivo, status, criado_em")
+          .order("criado_em", { ascending: false })
+          .limit(limit),
+        supabase
+          .from("conversas")
+          .select("titulo, criado_em")
+          .order("criado_em", { ascending: false })
+          .limit(limit),
       ]);
 
-      const items: any[] = [];
-      (kb.data ?? []).forEach((r: any) => items.push({ title: r.titulo, tag: r.categoria, time: r.criado_em }));
-      (uploads.data ?? []).forEach((r: any) => items.push({ title: `Upload — ${r.nome_arquivo}`, tag: "upload", time: r.criado_em }));
-      (conversas.data ?? []).forEach((r: any) => items.push({ title: `Conversa — ${r.titulo}`, tag: "consulta", time: r.criado_em }));
+      const items: DashboardActivityItem[] = [];
+      (kb.data ?? []).forEach((r: KnowledgeRecordRow) =>
+        items.push({
+          title: r.titulo ?? "Sem título",
+          tag: r.categoria ?? "conhecimento",
+          time: r.criado_em ?? "",
+        }),
+      );
+      (uploads.data ?? []).forEach((r: UploadRecordRow) =>
+        items.push({
+          title: `Upload — ${r.nome_arquivo ?? "arquivo"}`,
+          tag: "upload",
+          time: r.criado_em ?? "",
+        }),
+      );
+      (conversas.data ?? []).forEach((r: ConversationRecordRow) =>
+        items.push({
+          title: `Conversa — ${r.titulo ?? "sem título"}`,
+          tag: "consulta",
+          time: r.criado_em ?? "",
+        }),
+      );
 
       items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
       return items.slice(0, limit).map((it) => ({ title: it.title, tag: it.tag, time: it.time }));

@@ -20,12 +20,19 @@ interface EquipmentSummary {
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  return new Date(value).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 function EquipamentosPage() {
   const [q, setQ] = useState("");
-  const { data = [] } = useQuery({ queryKey: ["knowledge", "list"], queryFn: () => knowledgeBaseService.list() });
+  const { data = [] } = useQuery({
+    queryKey: ["knowledge", "list"],
+    queryFn: () => knowledgeBaseService.list(),
+  });
 
   const equipmentList = useMemo(() => {
     const map = new Map<string, EquipmentSummary>();
@@ -46,21 +53,34 @@ function EquipamentosPage() {
     return Array.from(map.values()).sort((a, b) => b.count - a.count);
   }, [data]);
 
-  const filtered = equipmentList.filter((item) => item.name.toLowerCase().includes(q.toLowerCase()));
+  const filtered = equipmentList.filter((item) =>
+    item.name.toLowerCase().includes(q.toLowerCase()),
+  );
 
   return (
     <AppShell
       title="Equipamentos"
       subtitle="Equipamentos mencionados na base de conhecimento"
-      actions={<Button size="sm"><Plus className="h-4 w-4" /> Novo equipamento</Button>}
+      actions={
+        <Button size="sm">
+          <Plus className="h-4 w-4" /> Novo equipamento
+        </Button>
+      }
     >
       <div className="mb-4 relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar equipamento" className="pl-9" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Buscar equipamento"
+          className="pl-9"
+        />
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum equipamento encontrado na base de conhecimento.</p>
+        <p className="text-sm text-muted-foreground">
+          Nenhum equipamento encontrado na base de conhecimento.
+        </p>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((item) => (
@@ -73,10 +93,14 @@ function EquipamentosPage() {
                   <Badge variant="outline">{item.count} ocorrências</Badge>
                 </div>
                 <h3 className="font-medium">{item.name}</h3>
-                <p className="mt-2 text-xs text-muted-foreground">Última referência: {formatDate(item.latestEntry)}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Última referência: {formatDate(item.latestEntry)}
+                </p>
                 <div className="mt-3 flex items-center gap-3 text-xs">
                   <Badge variant="secondary">Inventário</Badge>
-                  <span className="flex items-center gap-1 text-muted-foreground"><MapPin className="h-3 w-3" /> Base de conhecimento</span>
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <MapPin className="h-3 w-3" /> Base de conhecimento
+                  </span>
                 </div>
               </CardContent>
             </Card>

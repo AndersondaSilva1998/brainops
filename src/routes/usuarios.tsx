@@ -43,7 +43,8 @@ function UsuariosPage() {
               Acesso restrito: apenas usuário Desenvolvedor.
             </div>
             <p>
-              Esta página está disponível somente para usuários com o papel <strong>Desenvolvedor</strong>. Faça login com um usuário autorizado no Supabase.
+              Esta página está disponível somente para usuários com o papel{" "}
+              <strong>Desenvolvedor</strong>. Faça login com um usuário autorizado no Supabase.
             </p>
           </CardContent>
         </Card>
@@ -60,7 +61,8 @@ function UsuariosPage() {
             Registro de usuários não está disponível na configuração atual.
           </div>
           <p>
-            O esquema Supabase atual não expõe uma tabela de usuários gerenciável. Sua implementação deve ser adicionada ao banco de dados ou ao backend para habilitar esta página.
+            O esquema Supabase atual não expõe uma tabela de usuários gerenciável. Sua implementação
+            deve ser adicionada ao banco de dados ou ao backend para habilitar esta página.
           </p>
         </CardContent>
       </Card>

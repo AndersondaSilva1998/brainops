@@ -20,10 +20,7 @@ function ErrosConhecidosPage() {
     queryFn: () => knowledgeBaseService.list(),
   });
 
-  const items = useMemo(
-    () => data.filter((entry) => entry.category === "erro"),
-    [data],
-  );
+  const items = useMemo(() => data.filter((entry) => entry.category === "erro"), [data]);
 
   const filtered = items.filter((entry) =>
     [entry.title, entry.problemDescription, entry.equipment ?? "", ...entry.tags]
@@ -36,11 +33,20 @@ function ErrosConhecidosPage() {
     <AppShell
       title="Erros Conhecidos"
       subtitle="Catálogo de erros e soluções aplicadas"
-      actions={<Button size="sm"><Plus className="h-4 w-4" /> Novo erro</Button>}
+      actions={
+        <Button size="sm">
+          <Plus className="h-4 w-4" /> Novo erro
+        </Button>
+      }
     >
       <div className="mb-4 relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por equipamento ou título" className="pl-9" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Buscar por equipamento ou título"
+          className="pl-9"
+        />
       </div>
 
       {isLoading ? (
@@ -65,14 +71,19 @@ function ErrosConhecidosPage() {
                     {entry.category}
                   </Badge>
                 </div>
-                <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">{entry.problemDescription}</p>
+                <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
+                  {entry.problemDescription}
+                </p>
                 <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                   {entry.equipment && <span>Equipamento: {entry.equipment}</span>}
                   <span>Autor: {entry.author}</span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1">
                   {entry.tags.map((tag) => (
-                    <span key={tag} className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                    <span
+                      key={tag}
+                      className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                    >
                       #{tag}
                     </span>
                   ))}

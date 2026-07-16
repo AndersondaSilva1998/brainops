@@ -59,10 +59,17 @@ const recentActivity: { title: string; tag: string; time: string }[] = [];
 
 function DashboardPage() {
   const [metrics, setMetrics] = useState(initialMetrics);
-  const [queriesTrend, setQueriesTrend] = useState(initialQueriesTrend as any[]);
-  const [topProblemsState, setTopProblemsState] = useState(topProblems as { name: string; value: number }[]);
-  const [topEquipmentState, setTopEquipmentState] = useState(topEquipment as { name: string; falhas: number }[]);
-  const [recentActivityState, setRecentActivityState] = useState(recentActivity as { title: string; tag: string; time: string }[]);
+  const [queriesTrend, setQueriesTrend] =
+    useState<Array<{ day: string; value: number }>>(initialQueriesTrend);
+  const [topProblemsState, setTopProblemsState] = useState(
+    topProblems as { name: string; value: number }[],
+  );
+  const [topEquipmentState, setTopEquipmentState] = useState(
+    topEquipment as { name: string; falhas: number }[],
+  );
+  const [recentActivityState, setRecentActivityState] = useState(
+    recentActivity as { title: string; tag: string; time: string }[],
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -93,16 +100,44 @@ function DashboardPage() {
       subtitle="Painel executivo do BrainOps"
       actions={
         <Button asChild size="sm">
-          <Link to="/chat"><Bot className="h-4 w-4" /> Abrir BrainOps AI</Link>
+          <Link to="/chat">
+            <Bot className="h-4 w-4" /> Abrir BrainOps AI
+          </Link>
         </Button>
       }
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <StatCard label="Documentações" value={metrics.documentsCount} icon={FileText} accent="info" />
-        <StatCard label="Procedimentos" value={metrics.proceduresCount} icon={BookOpen} accent="primary" />
-        <StatCard label="Erros cadastrados" value={metrics.errorsCount} icon={AlertTriangle} accent="warning" />
-        <StatCard label="Consultas realizadas" value={metrics.queriesCount.toLocaleString("pt-BR")} icon={Search} accent="success" />
-        <StatCard label="Tempo médio (min)" value={metrics.avgResolutionMinutes} hint="resolução" icon={Timer} accent="primary" />
+        <StatCard
+          label="Documentações"
+          value={metrics.documentsCount}
+          icon={FileText}
+          accent="info"
+        />
+        <StatCard
+          label="Procedimentos"
+          value={metrics.proceduresCount}
+          icon={BookOpen}
+          accent="primary"
+        />
+        <StatCard
+          label="Erros cadastrados"
+          value={metrics.errorsCount}
+          icon={AlertTriangle}
+          accent="warning"
+        />
+        <StatCard
+          label="Consultas realizadas"
+          value={metrics.queriesCount.toLocaleString("pt-BR")}
+          icon={Search}
+          accent="success"
+        />
+        <StatCard
+          label="Tempo médio (min)"
+          value={metrics.avgResolutionMinutes}
+          hint="resolução"
+          icon={Timer}
+          accent="primary"
+        />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -123,8 +158,20 @@ function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                 <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <Tooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" fill="url(#g1)" strokeWidth={2} />
+                <Tooltip
+                  contentStyle={{
+                    background: "hsl(var(--background))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: 8,
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="hsl(var(--primary))"
+                  fill="url(#g1)"
+                  strokeWidth={2}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
@@ -156,8 +203,20 @@ function DashboardPage() {
               <BarChart data={topEquipmentState} layout="vertical" margin={{ left: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} width={160} />
-                <Tooltip contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  width={160}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "hsl(var(--background))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: 8,
+                  }}
+                />
                 <Bar dataKey="falhas" fill="hsl(var(--primary))" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -170,12 +229,17 @@ function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {recentActivityState.map((a) => (
-              <div key={a.title} className="flex items-start justify-between gap-3 rounded-md border p-3">
+              <div
+                key={a.title}
+                className="flex items-start justify-between gap-3 rounded-md border p-3"
+              >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{a.title}</p>
                   <p className="text-xs text-muted-foreground">{a.time}</p>
                 </div>
-                <Badge variant="outline" className="capitalize shrink-0">{a.tag}</Badge>
+                <Badge variant="outline" className="capitalize shrink-0">
+                  {a.tag}
+                </Badge>
               </div>
             ))}
           </CardContent>
@@ -183,15 +247,35 @@ function DashboardPage() {
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <QuickCard icon={MessageSquare} title="Nova consulta" desc="Pergunte à IA agora" to="/chat" />
+        <QuickCard
+          icon={MessageSquare}
+          title="Nova consulta"
+          desc="Pergunte à IA agora"
+          to="/chat"
+        />
         <QuickCard icon={Upload} title="Enviar documento" desc="Adicionar à base" to="/uploads" />
-        <QuickCard icon={TrendingUp} title="Ver analytics" desc="Métricas completas" to="/analytics" />
+        <QuickCard
+          icon={TrendingUp}
+          title="Ver analytics"
+          desc="Métricas completas"
+          to="/analytics"
+        />
       </div>
     </AppShell>
   );
 }
 
-function QuickCard({ icon: Icon, title, desc, to }: { icon: typeof MessageSquare; title: string; desc: string; to: string }) {
+function QuickCard({
+  icon: Icon,
+  title,
+  desc,
+  to,
+}: {
+  icon: typeof MessageSquare;
+  title: string;
+  desc: string;
+  to: string;
+}) {
   return (
     <Link to={to} className="group">
       <Card className="transition-all hover:border-primary/50 hover:shadow-sm">

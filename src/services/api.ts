@@ -1,8 +1,7 @@
 // Cliente HTTP simples para a API local de IA/RAG (por exemplo: Node/Python).
 // A URL base pode ser configurada via VITE_API_URL sem travar o projeto a um host específico.
 
-const BASE_URL =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
+const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
 
 export class ApiError extends Error {
   status: number;
@@ -25,7 +24,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   // /health may return plain text; guard accordingly.
   const ct = res.headers.get("content-type") ?? "";
-  return (ct.includes("application/json") ? await res.json() : ((await res.text()) as unknown)) as T;
+  return (
+    ct.includes("application/json") ? await res.json() : ((await res.text()) as unknown)
+  ) as T;
 }
 
 export const api = {

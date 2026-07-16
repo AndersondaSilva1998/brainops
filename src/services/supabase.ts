@@ -6,9 +6,7 @@ export const supabaseConfig = {
   anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined,
 };
 
-export const isSupabaseConfigured = Boolean(
-  supabaseConfig.url && supabaseConfig.anonKey,
-);
+export const isSupabaseConfigured = Boolean(supabaseConfig.url && supabaseConfig.anonKey);
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(supabaseConfig.url!, supabaseConfig.anonKey!)
