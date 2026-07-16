@@ -35,6 +35,61 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   });
 }
 
+function looksLikeErrorPayload(payload: unknown): boolean {
+  if (payload === null || payload === undefined) {
+    return false;
+  }
+
+  if (typeof payload === "string") {
+    const normalized = payload.trim().toLowerCase();
+    return normalized.length > 0 && /(error|erro|falha|exception|forbidden|unauthorized)/.test(normalized);
+  }
+
+  if (typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
+    if (record.ok === false || record.success === false) {
+      return true;
+    }
+
+    const errorValue = record.error ?? record.erro ?? record.message;
+    if (typeof errorValue === "string") {
+      return /(error|erro|falha|exception|forbidden|unauthorized)/i.test(errorValue);
+    }
+  }
+
+  return false;
+}
+
+function looksLikeSuccessfulPayload(payload: unknown): boolean {
+  if (payload === null || payload === undefined) {
+    return false;
+  }
+
+  if (typeof payload === "string") {
+    return payload.trim().length > 0;
+  }
+
+  if (Array.isArray(payload)) {
+    return payload.length > 0;
+  }
+
+  if (typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
+    if (record.ok === false || record.success === false) {
+      return false;
+    }
+
+    const errorValue = record.error ?? record.erro ?? record.message;
+    if (typeof errorValue === "string") {
+      return false;
+    }
+
+    return Object.keys(record).length > 0;
+  }
+
+  return true;
+}
+
 async function handleExternalProxy(request: Request): Promise<Response> {
   const allowHeaders = new Headers({
     "Access-Control-Allow-Origin": "*",
@@ -100,12 +155,17 @@ async function handleExternalProxy(request: Request): Promise<Response> {
       parsed = responseText;
     }
 
+    const upstreamOk = response.ok && !looksLikeErrorPayload(parsed) && looksLikeSuccessfulPayload(parsed);
+    const errorMessage = upstreamOk
+      ? undefined
+      : responseText || response.statusText || "A resposta da API externa não foi considerada válida.";
+
     return Response.json(
       {
-        ok: response.ok,
+        ok: upstreamOk,
         status: response.status,
         data: parsed,
-        error: response.ok ? undefined : responseText || response.statusText,
+        error: errorMessage,
       },
       {
         status: 200,

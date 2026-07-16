@@ -55,6 +55,26 @@ export function saveExternalApiConfig(config: ExternalApiConfig): ExternalApiCon
   return config;
 }
 
+function hasMeaningfulPayload(value: unknown): boolean {
+  if (value === null || value === undefined) {
+    return false;
+  }
+
+  if (typeof value === "string") {
+    return value.trim().length > 0;
+  }
+
+  if (Array.isArray(value)) {
+    return value.length > 0;
+  }
+
+  if (typeof value === "object") {
+    return Object.keys(value as Record<string, unknown>).length > 0;
+  }
+
+  return true;
+}
+
 export async function testExternalApi(config: ExternalApiConfig) {
   if (!config.url || !config.api || !config.funcao) {
     return {
@@ -91,9 +111,12 @@ export async function testExternalApi(config: ExternalApiConfig) {
     });
 
     const data = await res.json().catch(() => null);
+    const status = typeof data?.status === "number" ? data.status : res.status;
+    const ok = Boolean(data?.ok) && status >= 200 && status < 400 && !data?.error && hasMeaningfulPayload(data?.data);
+
     return {
-      ok: data?.ok ?? false,
-      status: data?.status ?? res.status,
+      ok,
+      status,
       data: data?.data,
       error: data?.error,
     };
