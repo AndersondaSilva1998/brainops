@@ -24,6 +24,16 @@ interface ConversationRecordRow {
   criado_em?: string;
 }
 
+interface ApiCallRow {
+  criado_em?: string;
+  endpoint?: string | null;
+  api?: string | null;
+  funcao?: string | null;
+  response_ok?: boolean | null;
+  response_status?: number | null;
+  response_error?: string | null;
+}
+
 interface DashboardActivityItem {
   title: string;
   tag: string;
@@ -45,21 +55,23 @@ export const dashboardService = {
     }
 
     try {
-      const docs = await supabase.from("documentos").select("id", { head: true, count: "exact" });
-      const procedures = await supabase
-        .from("bases_conhecimento")
-        .select("id", { head: true, count: "exact" })
-        .eq("categoria", "procedimento");
-      const errors = await supabase
-        .from("bases_conhecimento")
-        .select("id", { head: true, count: "exact" })
-        .eq("categoria", "erro");
-      const messagesRes = await supabase
-        .from<MessageRow>("mensagens")
-        .select("conversa_id,papel,criado_em");
+      const [docs, procedures, errors, messagesRes, apiCallsRes] = await Promise.all([
+        supabase.from("documentos").select("id", { head: true, count: "exact" }),
+        supabase
+          .from("bases_conhecimento")
+          .select("id", { head: true, count: "exact" })
+          .eq("categoria", "procedimento"),
+        supabase
+          .from("bases_conhecimento")
+          .select("id", { head: true, count: "exact" })
+          .eq("categoria", "erro"),
+        supabase.from<MessageRow>("mensagens").select("conversa_id,papel,criado_em"),
+        supabase.from<ApiCallRow>("api_chamadas").select("criado_em"),
+      ]);
 
       const messages = messagesRes.data ?? [];
-      const queriesCount = messages.length;
+      const apiCalls = apiCallsRes.data ?? [];
+      const queriesCount = messages.length + apiCalls.length;
       const resolutionMinutes = messages.reduce((acc, row, index, arr) => {
         if (row.papel !== "user") return acc;
         const nextAssistant = arr
@@ -106,13 +118,22 @@ export const dashboardService = {
     const since = new Date();
     since.setDate(since.getDate() - 6);
     try {
-      const { data, error } = await supabase
-        .from("mensagens")
-        .select("criado_em")
-        .gte("criado_em", since.toISOString())
-        .order("criado_em", { ascending: true });
+      const [{ data: messageRows, error: messagesError }, { data: apiCallRows, error: apiCallsError }] =
+        await Promise.all([
+          supabase
+            .from<MessageRow>("mensagens")
+            .select("criado_em")
+            .gte("criado_em", since.toISOString())
+            .order("criado_em", { ascending: true }),
+          supabase
+            .from<ApiCallRow>("api_chamadas")
+            .select("criado_em")
+            .gte("criado_em", since.toISOString())
+            .order("criado_em", { ascending: true }),
+        ]);
 
-      if (error) throw error;
+      if (messagesError) throw messagesError;
+      if (apiCallsError) throw apiCallsError;
 
       const counts: Record<string, number> = {};
       for (let i = 0; i < 7; i++) {
@@ -122,8 +143,13 @@ export const dashboardService = {
         counts[label] = 0;
       }
 
-      (data ?? []).forEach((r: MessageRow) => {
+      (messageRows ?? []).forEach((r: MessageRow) => {
         const dt = new Date(r.criado_em);
+        const label = weekdayLabels[dt.getDay()];
+        counts[label] = (counts[label] ?? 0) + 1;
+      });
+      (apiCallRows ?? []).forEach((r: ApiCallRow) => {
+        const dt = new Date(r.criado_em ?? new Date().toISOString());
         const label = weekdayLabels[dt.getDay()];
         counts[label] = (counts[label] ?? 0) + 1;
       });
@@ -200,7 +226,7 @@ export const dashboardService = {
     if (!isSupabaseConfigured || !supabase) return [] as DashboardActivityItem[];
 
     try {
-      const [kb, uploads, conversas] = await Promise.all([
+      const [kb, uploads, conversas, apiCalls] = await Promise.all([
         supabase
           .from("bases_conhecimento")
           .select("titulo, categoria, criado_em")
@@ -214,6 +240,11 @@ export const dashboardService = {
         supabase
           .from("conversas")
           .select("titulo, criado_em")
+          .order("criado_em", { ascending: false })
+          .limit(limit),
+        supabase
+          .from<ApiCallRow>("api_chamadas")
+          .select("api, funcao, criado_em")
           .order("criado_em", { ascending: false })
           .limit(limit),
       ]);
@@ -237,6 +268,13 @@ export const dashboardService = {
         items.push({
           title: `Conversa — ${r.titulo ?? "sem título"}`,
           tag: "consulta",
+          time: r.criado_em ?? "",
+        }),
+      );
+      (apiCalls.data ?? []).forEach((r: ApiCallRow) =>
+        items.push({
+          title: `API — ${r.funcao ?? r.api ?? "chamada"}`,
+          tag: "api",
           time: r.criado_em ?? "",
         }),
       );

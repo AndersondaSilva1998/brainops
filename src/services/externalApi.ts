@@ -1,3 +1,6 @@
+import { persistExternalApiCall } from "@/services/externalApiPersistence";
+import { notifyDashboardRefresh } from "@/services/dashboardRefresh";
+
 export interface ExternalApiConfig {
   url: string;
   api: string;
@@ -162,6 +165,18 @@ export async function testExternalApi(config: ExternalApiConfig) {
     };
 
     saveExternalApiResult(result);
+    await persistExternalApiCall({
+      endpoint: config.url,
+      api: config.api,
+      funcao: config.funcao,
+      method: config.method ?? "POST",
+      requestBody: payload as Record<string, unknown> | null,
+      responseStatus: status,
+      responseOk: ok,
+      responsePayload: data?.data,
+      responseError: result.error ?? null,
+    });
+    notifyDashboardRefresh();
     return result;
   } catch (error) {
     const result = {
@@ -172,6 +187,18 @@ export async function testExternalApi(config: ExternalApiConfig) {
       timestamp: new Date().toISOString(),
     };
     saveExternalApiResult(result);
+    await persistExternalApiCall({
+      endpoint: config.url,
+      api: config.api,
+      funcao: config.funcao,
+      method: config.method ?? "POST",
+      requestBody: null,
+      responseStatus: 0,
+      responseOk: false,
+      responsePayload: null,
+      responseError: result.error ?? null,
+    });
+    notifyDashboardRefresh();
     return result;
   }
 }

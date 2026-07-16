@@ -45,6 +45,20 @@ create table if not exists public.uploads (
   atualizado_em timestamptz not null default now()
 );
 
+create table if not exists public.api_chamadas (
+  id uuid primary key default uuid_generate_v4(),
+  endpoint text not null,
+  api text not null,
+  funcao text not null,
+  method text not null default 'POST',
+  request_body jsonb not null default '{}'::jsonb,
+  response_status integer not null default 0,
+  response_ok boolean not null default false,
+  response_payload jsonb default '{}'::jsonb,
+  response_error text,
+  criado_em timestamptz not null default now()
+);
+
 create table if not exists public.usuarios (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null unique,
@@ -86,10 +100,12 @@ create index if not exists idx_bases_conhecimento_categoria on public.bases_conh
 create index if not exists idx_documentos_criado_em on public.documentos(criado_em desc);
 create index if not exists idx_uploads_status on public.uploads(status);
 create index if not exists idx_mensagens_conversa_id on public.mensagens(conversa_id, criado_em);
+create index if not exists idx_api_chamadas_criado_em on public.api_chamadas(criado_em desc);
 
 alter table public.bases_conhecimento enable row level security;
 alter table public.documentos enable row level security;
 alter table public.uploads enable row level security;
+alter table public.api_chamadas enable row level security;
 alter table public.usuarios enable row level security;
 alter table public.conversas enable row level security;
 alter table public.mensagens enable row level security;
@@ -172,6 +188,19 @@ for insert with check (true);
 create policy "Permitir atualizacao para todos" on public.uploads
 for update using (true) with check (true);
 create policy "Permitir delecao para todos" on public.uploads
+for delete using (true);
+
+drop policy if exists "Permitir leitura para todos" on public.api_chamadas;
+drop policy if exists "Permitir insercao para todos" on public.api_chamadas;
+drop policy if exists "Permitir atualizacao para todos" on public.api_chamadas;
+drop policy if exists "Permitir delecao para todos" on public.api_chamadas;
+create policy "Permitir leitura para todos" on public.api_chamadas
+for select using (true);
+create policy "Permitir insercao para todos" on public.api_chamadas
+for insert with check (true);
+create policy "Permitir atualizacao para todos" on public.api_chamadas
+for update using (true) with check (true);
+create policy "Permitir delecao para todos" on public.api_chamadas
 for delete using (true);
 
 drop policy if exists "Permitir leitura para todos" on public.conversas;

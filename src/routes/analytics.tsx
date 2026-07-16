@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { StatCard } from "@/components/common/StatCard";
@@ -20,6 +21,7 @@ import {
   Bar,
 } from "recharts";
 import { analyticsService } from "@/services/analytics";
+import { subscribeToDashboardRefresh } from "@/services/dashboardRefresh";
 
 export const Route = createFileRoute("/analytics")({
   component: AnalyticsPage,
@@ -28,6 +30,16 @@ export const Route = createFileRoute("/analytics")({
 const COLORS = ["hsl(var(--primary))", "#38bdf8", "#f59e0b", "#10b981", "#a78bfa"];
 
 function AnalyticsPage() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const unsubscribe = subscribeToDashboardRefresh(() => {
+      void queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    });
+
+    return unsubscribe;
+  }, [queryClient]);
+
   const {
     data: overview = {
       queriesCount: 0,

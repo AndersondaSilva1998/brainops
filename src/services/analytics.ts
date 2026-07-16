@@ -23,6 +23,10 @@ interface MessageRow {
   criado_em: string;
 }
 
+interface ApiCallRow {
+  criado_em?: string;
+}
+
 interface KnowledgeCategoryRow {
   categoria?: string | null;
 }
@@ -50,6 +54,7 @@ export const analyticsService = {
 
     const [
       { data: messageRows, error: messagesError },
+      { data: apiCallRows, error: apiCallsError },
       { count: docsCount, error: docsError },
       { count: uploadsCount, error: uploadsError },
     ] = await Promise.all([
@@ -58,16 +63,19 @@ export const analyticsService = {
         .select("conversa_id,papel,criado_em")
         .gte("criado_em", since.toISOString())
         .order("criado_em", { ascending: true }),
+      supabase.from<ApiCallRow>("api_chamadas").select("criado_em"),
       supabase.from("documentos").select("id", { head: true, count: "exact" }),
       supabase.from("uploads").select("id", { head: true, count: "exact" }),
     ]);
 
     if (messagesError) console.error("Supabase error analytics messages:", messagesError);
+    if (apiCallsError) console.error("Supabase error analytics api calls:", apiCallsError);
     if (docsError) console.error("Supabase error analytics documents:", docsError);
     if (uploadsError) console.error("Supabase error analytics uploads:", uploadsError);
 
     const messages = messageRows ?? [];
-    const queriesCount = messages.length;
+    const apiCalls = apiCallRows ?? [];
+    const queriesCount = messages.length + apiCalls.length;
 
     const resolutionMinutes = messages.reduce((acc, row, index, arr) => {
       if (row.papel !== "user") return acc;
@@ -113,13 +121,21 @@ export const analyticsService = {
     const since = new Date();
     since.setDate(since.getDate() - (days - 1));
 
-    const { data, error } = await supabase
-      .from<MessageRow>("mensagens")
-      .select("criado_em")
-      .gte("criado_em", since.toISOString());
+    const [{ data: messageRows, error: messagesError }, { data: apiCallRows, error: apiCallsError }] =
+      await Promise.all([
+        supabase
+          .from<MessageRow>("mensagens")
+          .select("criado_em")
+          .gte("criado_em", since.toISOString()),
+        supabase.from<ApiCallRow>("api_chamadas").select("criado_em"),
+      ]);
 
-    if (error) {
-      console.error("Supabase error analytics trend:", error);
+    if (messagesError) {
+      console.error("Supabase error analytics trend:", messagesError);
+      return [];
+    }
+    if (apiCallsError) {
+      console.error("Supabase error analytics api trend:", apiCallsError);
       return [];
     }
 
@@ -131,8 +147,12 @@ export const analyticsService = {
       return label;
     });
 
-    (data ?? []).forEach((row) => {
+    (messageRows ?? []).forEach((row) => {
       const label = formatDay(new Date(row.criado_em));
+      if (counts.has(label)) counts.set(label, (counts.get(label) ?? 0) + 1);
+    });
+    (apiCallRows ?? []).forEach((row) => {
+      const label = formatDay(new Date(row.criado_em ?? new Date().toISOString()));
       if (counts.has(label)) counts.set(label, (counts.get(label) ?? 0) + 1);
     });
 

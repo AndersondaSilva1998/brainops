@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { subscribeToDashboardRefresh } from "@/services/dashboardRefresh";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -73,24 +74,37 @@ function DashboardPage() {
 
   useEffect(() => {
     let mounted = true;
-    (async () => {
+
+    const loadDashboardData = async () => {
       try {
-        const m = await dashboardService.getMetrics();
-        if (mounted) setMetrics(m);
-        const qt = await dashboardService.getQueriesTrend();
-        if (mounted) setQueriesTrend(qt);
-        const tp = await dashboardService.getTopProblems();
-        if (mounted) setTopProblemsState(tp.length ? tp : topProblems);
-        const te = await dashboardService.getTopEquipment();
-        if (mounted) setTopEquipmentState(te.length ? te : topEquipment);
-        const ra = await dashboardService.getRecentActivity();
-        if (mounted) setRecentActivityState(ra.length ? ra : recentActivity);
-      } catch (e) {
+        const [m, qt, tp, te, ra] = await Promise.all([
+          dashboardService.getMetrics(),
+          dashboardService.getQueriesTrend(),
+          dashboardService.getTopProblems(),
+          dashboardService.getTopEquipment(),
+          dashboardService.getRecentActivity(),
+        ]);
+
+        if (!mounted) return;
+
+        setMetrics(m);
+        setQueriesTrend(qt);
+        setTopProblemsState(tp.length ? tp : topProblems);
+        setTopEquipmentState(te.length ? te : topEquipment);
+        setRecentActivityState(ra.length ? ra : recentActivity);
+      } catch {
         /* fetch errors are already logged in service */
       }
-    })();
+    };
+
+    void loadDashboardData();
+    const unsubscribe = subscribeToDashboardRefresh(() => {
+      void loadDashboardData();
+    });
+
     return () => {
       mounted = false;
+      unsubscribe();
     };
   }, []);
 
