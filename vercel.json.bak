@@ -1,0 +1,5 @@
+{
+  "version": 2,
+  "buildCommand": "npx nitro build --preset vercel --dir .",
+  "outputDirectory": ".vercel/output"
+}
