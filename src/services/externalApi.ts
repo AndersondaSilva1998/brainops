@@ -3,6 +3,7 @@ export interface ExternalApiConfig {
   api: string;
   funcao: string;
   body: string;
+  method?: "GET" | "POST";
 }
 
 // Chave usada no armazenamento local para guardar a configuração da API externa.
@@ -12,6 +13,7 @@ export const defaultExternalApiConfig: ExternalApiConfig = {
   url: "https://branco.eship.com.br/v3/",
   api: "",
   funcao: "",
+  method: "POST",
   body: JSON.stringify(
     {
       ordem: "00716320",
@@ -62,10 +64,6 @@ export async function testExternalApi(config: ExternalApiConfig) {
   }
 
   try {
-    const url = new URL(config.url);
-    url.searchParams.set("api", config.api);
-    url.searchParams.set("funcao", config.funcao);
-
     let payload: unknown = {};
     if (config.body.trim()) {
       try {
@@ -78,27 +76,26 @@ export async function testExternalApi(config: ExternalApiConfig) {
       }
     }
 
-    const res = await fetch(url.toString(), {
+    const res = await fetch("/api/external", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        url: config.url,
+        api: config.api,
+        funcao: config.funcao,
+        method: config.method ?? "POST",
+        body: payload,
+      }),
     });
 
-    const text = await res.text();
-    let data: unknown = text;
-    try {
-      data = text ? JSON.parse(text) : null;
-    } catch {
-      data = text;
-    }
-
+    const data = await res.json().catch(() => null);
     return {
-      ok: res.ok,
-      status: res.status,
-      data,
-      error: res.ok ? undefined : text || res.statusText,
+      ok: data?.ok ?? false,
+      status: data?.status ?? res.status,
+      data: data?.data,
+      error: data?.error,
     };
   } catch (error) {
     return {
