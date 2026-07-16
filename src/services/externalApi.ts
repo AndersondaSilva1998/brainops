@@ -8,6 +8,15 @@ export interface ExternalApiConfig {
 
 // Chave usada no armazenamento local para guardar a configuração da API externa.
 const STORAGE_KEY = "brainops.external-api-config";
+const RESULT_STORAGE_KEY = "brainops.external-api-last-result";
+
+export interface ExternalApiTestResult {
+  ok: boolean;
+  status: number;
+  data: unknown;
+  error?: string;
+  timestamp?: string;
+}
 
 export const defaultExternalApiConfig: ExternalApiConfig = {
   url: "https://branco.eship.com.br/v3/",
@@ -53,6 +62,30 @@ export function saveExternalApiConfig(config: ExternalApiConfig): ExternalApiCon
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
   }
   return config;
+}
+
+export function getLastExternalApiResult(): ExternalApiTestResult | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(RESULT_STORAGE_KEY);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(raw) as ExternalApiTestResult;
+  } catch {
+    return null;
+  }
+}
+
+export function saveExternalApiResult(result: ExternalApiTestResult): ExternalApiTestResult {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(result));
+  }
+  return result;
 }
 
 function hasMeaningfulPayload(value: unknown): boolean {
@@ -112,18 +145,27 @@ export async function testExternalApi(config: ExternalApiConfig) {
 
     const data = await res.json().catch(() => null);
     const status = typeof data?.status === "number" ? data.status : res.status;
-    const ok = Boolean(data?.ok) && status >= 200 && status < 400 && !data?.error && hasMeaningfulPayload(data?.data);
+    const ok = res.ok && Boolean(data?.ok) && status >= 200 && status < 400 && !data?.error && hasMeaningfulPayload(data?.data);
 
-    return {
+    const result = {
       ok,
       status,
       data: data?.data,
-      error: data?.error,
+      error: data?.error ?? (res.ok ? undefined : "A API externa respondeu com erro."),
+      timestamp: new Date().toISOString(),
     };
+
+    saveExternalApiResult(result);
+    return result;
   } catch (error) {
-    return {
+    const result = {
       ok: false,
+      status: 0,
+      data: null,
       error: error instanceof Error ? error.message : "Falha ao testar a API.",
+      timestamp: new Date().toISOString(),
     };
+    saveExternalApiResult(result);
+    return result;
   }
 }

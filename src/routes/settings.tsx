@@ -11,6 +11,7 @@ import { chatService } from "@/services/chat";
 import {
   defaultExternalApiConfig,
   getExternalApiConfig,
+  getLastExternalApiResult,
   saveExternalApiConfig,
   testExternalApi,
 } from "@/services/externalApi";
@@ -25,6 +26,7 @@ function SettingsPage() {
   const [checking, setChecking] = useState(false);
   const [testingExternal, setTestingExternal] = useState(false);
   const [externalConfig, setExternalConfig] = useState(() => getExternalApiConfig());
+  const [lastExternalResult, setLastExternalResult] = useState(() => getLastExternalApiResult());
   const supabaseHost = supabaseConfig.url
     ? (() => {
         try {
@@ -52,6 +54,7 @@ function SettingsPage() {
     setTestingExternal(true);
     const result = await testExternalApi(externalConfig);
     setTestingExternal(false);
+    setLastExternalResult(result);
 
     if (result.ok) {
       toast.success(`Conexão OK (${result.status})`);
@@ -168,6 +171,35 @@ function SettingsPage() {
               >
                 Restaurar padrão
               </Button>
+            </div>
+
+            <div className="rounded-md border bg-muted/30 p-3 text-sm">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="font-medium">Último retorno salvo</span>
+                <span className="text-xs text-muted-foreground">
+                  {lastExternalResult?.timestamp ? new Date(lastExternalResult.timestamp).toLocaleString("pt-BR") : "Ainda não houve teste"}
+                </span>
+              </div>
+              {lastExternalResult ? (
+                <div className="space-y-2">
+                  <p>
+                    <span className="font-medium">Status:</span> {lastExternalResult.status}
+                  </p>
+                  <p>
+                    <span className="font-medium">Sucesso:</span> {lastExternalResult.ok ? "Sim" : "Não"}
+                  </p>
+                  {lastExternalResult.error ? (
+                    <p className="text-red-600">
+                      <span className="font-medium">Erro:</span> {lastExternalResult.error}
+                    </p>
+                  ) : null}
+                  <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded bg-background p-2 text-xs">
+                    {JSON.stringify(lastExternalResult.data, null, 2)}
+                  </pre>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Nenhum retorno foi salvo ainda.</p>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -60,13 +60,27 @@ function looksLikeErrorPayload(payload: unknown): boolean {
   return false;
 }
 
-function looksLikeSuccessfulPayload(payload: unknown): boolean {
+function looksLikeSuccessfulPayload(payload: unknown, contentType: string | null): boolean {
   if (payload === null || payload === undefined) {
     return false;
   }
 
+  if (contentType && /text\/html|application\/xhtml\+xml/i.test(contentType)) {
+    return false;
+  }
+
   if (typeof payload === "string") {
-    return payload.trim().length > 0;
+    const normalized = payload.trim().toLowerCase();
+    if (!normalized) {
+      return false;
+    }
+    if (normalized.startsWith("<!doctype") || normalized.startsWith("<html") || normalized.includes("<body")) {
+      return false;
+    }
+    if (/(error|erro|falha|exception|forbidden|unauthorized|not found|timeout)/.test(normalized)) {
+      return false;
+    }
+    return true;
   }
 
   if (Array.isArray(payload)) {
@@ -84,7 +98,13 @@ function looksLikeSuccessfulPayload(payload: unknown): boolean {
       return false;
     }
 
-    return Object.keys(record).length > 0;
+    const meaningfulKeys = ["data", "result", "results", "items", "dados", "ordens", "response", "value", "values", "content"];
+    const hasMeaningfulKey = meaningfulKeys.some((key) => key in record);
+    if (hasMeaningfulKey) {
+      return true;
+    }
+
+    return Object.keys(record).length > 1;
   }
 
   return true;
@@ -155,7 +175,10 @@ async function handleExternalProxy(request: Request): Promise<Response> {
       parsed = responseText;
     }
 
-    const upstreamOk = response.ok && !looksLikeErrorPayload(parsed) && looksLikeSuccessfulPayload(parsed);
+    const upstreamOk =
+      response.ok &&
+      !looksLikeErrorPayload(parsed) &&
+      looksLikeSuccessfulPayload(parsed, response.headers.get("content-type"));
     const errorMessage = upstreamOk
       ? undefined
       : responseText || response.statusText || "A resposta da API externa não foi considerada válida.";
@@ -168,7 +191,7 @@ async function handleExternalProxy(request: Request): Promise<Response> {
         error: errorMessage,
       },
       {
-        status: 200,
+        status: response.ok ? 200 : response.status,
         headers: allowHeaders,
       },
     );
